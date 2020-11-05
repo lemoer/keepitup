@@ -1,0 +1,7 @@
+#!/usr/bin/env python3
+
+INFLUX_HOST = "[::1]"
+INFLUX_PORT = 8086
+INFLUX_USER = "pingtester"
+INFLUX_PASS = "PASSWORD"
+INFLUX_DATABASE = "pingtester"
