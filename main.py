@@ -104,13 +104,17 @@ class NodesJSONCache:
             if node.nodeid == nodeid:
                 return node
 
-class NodesDB:
+class NodeSet:
 
     def __init__(self):
         self.nodes = []
 
-    def update_from_db(self, session):
-        self.nodes = session.query(Node).all()
+    def update_from_db(self, session, filter_user=None):
+        q = session.query(Node)
+        if filter_user is not None:
+            q = q.filter(Node.user == filter_user)
+
+        self.nodes = q.all()
 
     def ping_all(self):
         if len(self.nodes) == 0:
@@ -133,9 +137,13 @@ class NodesDB:
 
             node.pings = np.vstack((node.pings, [send_time, rtt, 0]))
 
-    def load_from_influx_all(self, influx_results):
+    def load_from_influx(self, influx, delta=datetime.timedelta(days=40*365)):
+        time = datetime.datetime.now() - delta
+        res = influx.query("SELECT * FROM pingtester_ping WHERE time > $time;",
+                bind_params=dict(time=time.isoformat()+"Z"))
+
         for node in self.nodes:
-            node.load_from_influx(influx_results)
+            node.parse_from_influx(res)
 
     def gen_measurements_all(self):
         measurements = []
@@ -196,13 +204,20 @@ class Node(Base):
 
         return measurements
 
-    def load_from_influx(self, influx_results):
+    def load_from_influx(self, influx, delta=datetime.timedelta(days=40*365)):
+        time = datetime.datetime.now() - delta
+        res = influx.query("SELECT * FROM pingtester_ping WHERE nodeid=$nodeid and time > $time;",
+                bind_params=dict(nodeid=self.nodeid, time=time.isoformat()+"Z"))
+
+        self.parse_from_influx(res)
+
+    def parse_from_influx(self, influx_result):
         if np.size(self.pings, 0) > 0:
             max_send_time = max(self.pings[:,0])
         else:
             max_send_time = None
 
-        for r in influx_results:
+        for r in influx_result.get_points(tags={"nodeid": self.nodeid}):
             if r['nodeid'] != self.nodeid:
                 continue
 
@@ -232,7 +247,7 @@ def on_load(instance, context):
     instance.pings = np.empty((0,3))
 
 cache = NodesJSONCache()
-db = NodesDB()
+db = NodeSet()
 client = InfluxDBClient(INFLUX_HOST, INFLUX_PORT, INFLUX_USER, INFLUX_PASS, INFLUX_DATABASE)
 #db = NodeDB(client)
 #b = Node("fial", "1337", "8.8.8.1")
@@ -246,7 +261,6 @@ Node.metadata.create_all(engine)
 #Node.send_all()
 #
 #client.write_points(Node.gen_measurements_all())
-db.update_from_db(session)
-test = client.query("SELECT * FROM pingtester_ping;")
-db.load_from_influx_all(list(test)[0])
+db.update_from_db(session, User.find_by_email(session, "me@irrelefant.net"))
+db.load_from_influx(client)
 print(db.nodes[0].pings)
