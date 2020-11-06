@@ -5,7 +5,65 @@ import numpy as np
 import datetime
 import pprint
 import time
+import secrets
+import smtplib, ssl
+
+from sqlalchemy import create_engine, func
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, Integer, String, Sequence, Boolean, DateTime
+from sqlalchemy.orm import sessionmaker
+
 from config import *
+import mail_templates
+
+Base = declarative_base()
+
+engine = create_engine('sqlite:///foo.db')
+
+class User(Base):
+    __tablename__ = 'users'
+    id = Column(Integer, Sequence('user_id_seq'), primary_key=True)
+    email = Column(String(50), unique=True)
+    email_confirmed = Column(Boolean, default=False)
+    email_token = Column(String(64), default=lambda: secrets.token_urlsafe(64))
+    created_at = Column(DateTime, default=func.now())
+
+    def __repr__(self):
+        return "<User(email='%s', confirmed='%s')>" % (
+                                self.email, str(self.email_confirmed))
+
+    @classmethod
+    def find_by_email(cls, session, email):
+        return session.query(User).filter(User.email == email).one_or_none()
+
+    def try_confirm(self, session, token):
+        tokens_match = secrets.compare_digest(self.email_token, token)
+
+        if tokens_match:
+            self.email_confirmed = True
+            session.add(self)
+            session.commit()
+
+        return tokens_match
+
+    def send_confirm_mail(self, url):
+        url = url + "?email=" + self.email + "&token=" + self.email_token
+        mail = mail_templates.CONFIRM.format(self=self, SMTP_FROM=SMTP_FROM, url=url)
+
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
+            server.ehlo()
+            if SMTP_USE_STARTTLS:
+                context = ssl.create_default_context()
+                server.starttls(context=context)
+            server.sendmail(SMTP_FROM, self.email, mail)
+
+
+User.metadata.create_all(engine)
+
+Session = sessionmaker()
+Session.configure(bind=engine)
+session = Session()
+
 
 class Node:
     __all__ = []
@@ -117,16 +175,16 @@ class Node:
         self.pings = np.delete(self.pings, idx, 0)
 
 
-b = Node("fial", "1337", "8.8.8.1")
-a = Node("google", "12213123", "8.8.8.8")
-
 client = InfluxDBClient(INFLUX_HOST, INFLUX_PORT, INFLUX_USER, INFLUX_PASS, INFLUX_DATABASE)
-
-test = client.query("SELECT * FROM pingtester_ping;")
-
-Node.load_from_influx_all(list(test)[0])
-
-Node.send_all()
-Node.send_all()
-
-client.write_points(Node.gen_measurements_all())
+b = Node("fial", "1337", "8.8.8.1")
+#a = Node("google", "12213123", "8.8.8.8")
+#
+#
+#test = client.query("SELECT * FROM pingtester_ping;")
+#
+#Node.load_from_influx_all(list(test)[0])
+#
+#Node.send_all()
+#Node.send_all()
+#
+#client.write_points(Node.gen_measurements_all())
