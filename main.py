@@ -1,17 +1,21 @@
+#!/usr/bin/env python3
+
 from multiping import MultiPing
 from influxdb import InfluxDBClient
 from dateutil.parser import parse as parse_time
 import numpy as np
-import datetime
-import pprint
+import sys
 import time
+import pprint
 import secrets
+import datetime
+import requests
 import smtplib, ssl
 
-from sqlalchemy import create_engine, func
+from sqlalchemy import create_engine, func, event
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, Sequence, Boolean, DateTime
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import Column, Integer, String, Sequence, Boolean, DateTime, ForeignKey
+from sqlalchemy.orm import sessionmaker,relationship
 
 from config import *
 import mail_templates
@@ -27,6 +31,7 @@ class User(Base):
     email_confirmed = Column(Boolean, default=False)
     email_token = Column(String(64), default=lambda: secrets.token_urlsafe(64))
     created_at = Column(DateTime, default=func.now())
+    nodes = relationship("Node", back_populates="user")
 
     def __repr__(self):
         return "<User(email='%s', confirmed='%s')>" % (
@@ -39,7 +44,7 @@ class User(Base):
     def try_confirm(self, session, token):
         tokens_match = secrets.compare_digest(self.email_token, token)
 
-        if tokens_match:
+        if not self.email_confirmed and tokens_match:
             self.email_confirmed = True
             session.add(self)
             session.commit()
@@ -64,33 +69,63 @@ Session = sessionmaker()
 Session.configure(bind=engine)
 session = Session()
 
+class NodesJSONCache:
 
-class Node:
-    __all__ = []
+    def __init__(self):
+        self.nodes = []
 
-    def __init__(self, name, nodeid, ip):
-        self.name = name
-        self.ip = ip
-        self.nodeid = nodeid
+    def update(self):
+        res = requests.get(NODES_JSON_URL)
 
-        # two column array containing (time, rtt, committed)
-        # -> rtt = NaN means ping was lost
-        self.pings = np.empty((0,3))
+        if not res.ok:
+            print("warning: NodesJSONCache could not download " + NODES_JSON_URL + "!", file=sys.stderr)
+            return
 
-        Node.__all__.append(self)
+        nodes = []
+        try:
+            for node in res.json()['nodes']:
+                nodeinfo = node['nodeinfo']
+                addresses = nodeinfo['network']['addresses']
+                if len(addresses) > 0:
+                    address = addresses[0]
+                else:
+                    address = None
+                
+                n = Node(nodeinfo['hostname'], nodeinfo['node_id'], address)
+                nodes += [n]
+        except KeyError:
+            print("warning: NodesJSONCache detected wrong format for " + NODES_JSON_URL + "!", file=sys.stderr)
+            return
 
-    @classmethod
-    def send_all(self):
+        self.nodes = nodes
+
+    def find_by_nodeid(self, nodeid):
+        for node in self.nodes:
+            if node.nodeid == nodeid:
+                return node
+
+class NodesDB:
+
+    def __init__(self):
+        self.nodes = []
+
+    def update_from_db(self, session):
+        self.nodes = session.query(Node).all()
+
+    def ping_all(self):
+        if len(self.nodes) == 0:
+            return
+
         send_time = datetime.datetime.now()
 
-        ips = [node.ip for node in Node.__all__]
+        ips = [node.ip for node in self.nodes]
         mp = MultiPing(ips)
 
         mp.send()
 
         responses, no_responses = mp.receive(1)
 
-        for node in Node.__all__:
+        for node in self.nodes: 
             rtt = np.NaN
 
             if node.ip in responses:
@@ -98,12 +133,39 @@ class Node:
 
             node.pings = np.vstack((node.pings, [send_time, rtt, 0]))
 
-    @classmethod
+    def load_from_influx_all(self, influx_results):
+        for node in self.nodes:
+            node.load_from_influx(influx_results)
+
     def gen_measurements_all(self):
         measurements = []
-        for node in Node.__all__:
+        for node in self.nodes:
             measurements += node.gen_measurements()
         return measurements
+
+    def flush_cache_all(self, delta=datetime.timedelta(seconds=0)):
+        for node in self.nodes:
+            node.flush_cache(delta)
+
+
+class Node(Base):
+    __tablename__ = 'nodes'
+
+    id = Column(Integer, Sequence('node_id_seq'), primary_key=True)
+    name = Column(String(64))
+    nodeid = Column(String(32))
+    ip = Column(String(64))
+    user_id = Column(Integer, ForeignKey('users.id'))
+    user = relationship("User", back_populates="nodes")
+
+    def __init__(self):
+        self.name = name
+        self.ip = ip
+        self.nodeid = nodeid
+
+        # two column array containing (time, rtt, committed)
+        # -> rtt = NaN means ping was lost
+        self.pings = np.empty((0,3))
 
     def gen_measurements(self):
         """ Generate InfluxDB Measurements for the yet uncommitted
@@ -134,14 +196,9 @@ class Node:
 
         return measurements
 
-    @classmethod
-    def load_from_influx_all(cls, influx_results):
-        for node in Node.__all__:
-            node.load_from_influx(influx_results)
-
     def load_from_influx(self, influx_results):
-        if np.size(a.pings, 0) > 0:
-            max_send_time = max(a.pings[:,0])
+        if np.size(self.pings, 0) > 0:
+            max_send_time = max(self.pings[:,0])
         else:
             max_send_time = None
 
@@ -162,11 +219,6 @@ class Node:
 
             self.pings = np.vstack((self.pings, [send_time, rtt, 1]))
 
-    @classmethod
-    def flush_cache_all(cls, delta=datetime.timedelta(seconds=0)):
-        for node in Node.__all__:
-            node.flush_cache(delta)
-
     def flush_cache(self, delta=datetime.timedelta(seconds=0)):
         now = datetime.datetime.now()
 
@@ -175,16 +227,26 @@ class Node:
         self.pings = np.delete(self.pings, idx, 0)
 
 
+@event.listens_for(Node, 'load')
+def on_load(instance, context):
+    instance.pings = np.empty((0,3))
+
+cache = NodesJSONCache()
+db = NodesDB()
 client = InfluxDBClient(INFLUX_HOST, INFLUX_PORT, INFLUX_USER, INFLUX_PASS, INFLUX_DATABASE)
-b = Node("fial", "1337", "8.8.8.1")
+#db = NodeDB(client)
+#b = Node("fial", "1337", "8.8.8.1")
+Node.metadata.create_all(engine)
 #a = Node("google", "12213123", "8.8.8.8")
 #
 #
-#test = client.query("SELECT * FROM pingtester_ping;")
 #
-#Node.load_from_influx_all(list(test)[0])
-#
+#Node.#
 #Node.send_all()
 #Node.send_all()
 #
 #client.write_points(Node.gen_measurements_all())
+db.update_from_db(session)
+test = client.query("SELECT * FROM pingtester_ping;")
+db.load_from_influx_all(list(test)[0])
+print(db.nodes[0].pings)
