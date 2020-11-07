@@ -23,7 +23,6 @@ import mail_templates
 
 Base = declarative_base()
 
-engine = create_engine('sqlite:///foo.db')
 
 class User(Base):
     __tablename__ = 'users'
@@ -63,12 +62,6 @@ class User(Base):
                 server.starttls(context=context)
             server.sendmail(SMTP_FROM, self.email, mail)
 
-
-User.metadata.create_all(engine)
-
-Session = sessionmaker()
-Session.configure(bind=engine)
-session = Session()
 
 class NodesJSONCache:
 
@@ -126,6 +119,9 @@ class NodeSet:
         self.nodes = []
 
     def update_from_db(self, session, filter_user=None):
+        # force reload from db
+        session.expire_all()
+
         q = session.query(Node)
         if filter_user is not None:
             q = q.filter(Node.user == filter_user)
@@ -267,7 +263,7 @@ class Node(Base):
             send_time = parse_time(r['time'], ignoretz=True)
 
             # this row is most likely already loaded
-            if max_send_time and send_time < max_send_time:
+            if max_send_time and send_time <= max_send_time:
                 continue
 
             if r['lost'] == 1:
@@ -330,14 +326,13 @@ class Node(Base):
             lambda total, lost: lost / total < 0.3
         )
         if is_resolved:
-            res = self.latest_state_change
+            res = self.latest_state_change(session)
             res.resolved_at = func.now()
             session.add(res)
             session.commit()
         return is_resolved
 
-    @property
-    def latest_state_change(self):
+    def latest_state_change(self, session):
         return session.query(StateChange).\
             filter(StateChange.node_id == self.id).\
             order_by(StateChange.id.desc()).\
@@ -348,13 +343,24 @@ class Node(Base):
 def on_load(instance, context):
     instance.pings = np.empty((0,3))
 
+def get_session():
+    engine = create_engine('sqlite:///foo.db')
 
-cache = NodesJSONCache()
-db = NodeSet()
-client = InfluxDBClient(INFLUX_HOST, INFLUX_PORT, INFLUX_USER, INFLUX_PASS, INFLUX_DATABASE)
+    Session = sessionmaker()
+    Session.configure(bind=engine)
+    return Session()
+
+def get_influx():
+    return InfluxDBClient(INFLUX_HOST, INFLUX_PORT, INFLUX_USER, INFLUX_PASS, INFLUX_DATABASE)
+
+#User.metadata.create_all(engine)
+
+#cache = NodesJSONCache()
+#db = NodeSet()
+#client = 
 #db = NodeDB(client)
 #b = Node("fial", "1337", "8.8.8.1")
-Node.metadata.create_all(engine)
+#Node.metadata.create_all(engine)
 #a = Node("google", "12213123", "8.8.8.8")
 #
 #
@@ -364,6 +370,6 @@ Node.metadata.create_all(engine)
 #Node.send_all()
 #
 #client.write_points(Node.gen_measurements_all())
-db.update_from_db(session, User.find_by_email(session, "me@irrelefant.net"))
-db.load_from_influx(client)
-print(db.nodes[0].pings)
+#db.update_from_db(session, User.find_by_email(session, "me@irrelefant.net"))
+#db.load_from_influx(client)
+#print(db.nodes[0].pings)
