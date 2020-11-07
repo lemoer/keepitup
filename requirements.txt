@@ -1,4 +1,5 @@
-multiping
 numpy
 influxdb
 sqlalchemy
+git+https://github.com/lemoer/multi-ping.git
+#multiping
