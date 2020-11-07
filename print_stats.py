@@ -18,6 +18,7 @@ for n in nodeset.nodes:
     print('|    name: ' + n.name)
     print("|  nodeid: " + n.nodeid)
     print("|      ip: " + n.ip)
+    print("|   state: " + n.state)
     print("|------------------------------------------------")
     for p in n.pings:
         delta = (now - p[0]).total_seconds()
