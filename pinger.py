@@ -15,6 +15,8 @@ influx_keep_time = datetime.timedelta(minutes=15)
 nodeset.update_from_db(session)
 nodeset.load_from_influx(influx, delta=influx_keep_time)
 
+print("pinger.py, " + str(len(nodeset.nodes)) + " nodes loaded.")
+
 try:
     while True:
         nodeset.update_from_db(session)
