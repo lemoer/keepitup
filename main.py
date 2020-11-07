@@ -117,19 +117,25 @@ class NodeSet:
         self.nodes = q.all()
 
     def ping_all(self):
-        if len(self.nodes) == 0:
+        self.ping_sliced()
+
+    def ping_sliced(self, start=0, step=1):
+        assert(start < step)
+
+        sliced_nodes = self.nodes[start::step]
+        if len(sliced_nodes) == 0:
             return
 
         send_time = datetime.datetime.now()
 
-        ips = [node.ip for node in self.nodes]
+        ips = [node.ip for node in sliced_nodes]
         mp = MultiPing(ips)
 
         mp.send()
 
         responses, no_responses = mp.receive(1)
 
-        for node in self.nodes: 
+        for node in sliced_nodes: 
             rtt = np.NaN
 
             if node.ip in responses:
@@ -145,7 +151,7 @@ class NodeSet:
         for node in self.nodes:
             node.parse_from_influx(res)
 
-    def gen_measurements_all(self):
+    def _gen_measurements_all(self):
         measurements = []
         for node in self.nodes:
             measurements += node.gen_measurements()
@@ -154,6 +160,10 @@ class NodeSet:
     def flush_cache_all(self, delta=datetime.timedelta(seconds=0)):
         for node in self.nodes:
             node.flush_cache(delta)
+
+    def save_to_influx(self, influx):
+        measurements = self._gen_measurements_all()
+        influx.write_points(measurements)
 
 
 class Node(Base):
