@@ -104,6 +104,21 @@ class NodesJSONCache:
             if node.nodeid == nodeid:
                 return node
 
+    def update_db_node(self, session, node):
+        other = self.find_by_nodeid(node.nodeid)
+
+        # node does not exist in nodes.json anymore, so we can not
+        # update it.
+        if not other:
+            return
+
+        node.ip = other.ip
+        node.name = other.name
+
+        session.add(node)
+        session.commit()
+
+
 class NodeSet:
 
     def __init__(self):
