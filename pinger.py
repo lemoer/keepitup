@@ -26,12 +26,8 @@ try:
             delta = start + TIMEOUT - end
             if delta > 0:
                 time.sleep(delta)
-            print("delta:", delta)
-            print("ping " + str(i))
 
         nodeset.save_to_influx(influx)
-        for n in nodeset.nodes:
-            print(n.ip)
 
         for n in nodeset.nodes:
             if n.check_alarm(session):
