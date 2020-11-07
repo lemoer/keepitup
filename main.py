@@ -15,7 +15,8 @@ import smtplib, ssl
 from sqlalchemy import create_engine, func, event
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Sequence, Boolean, DateTime, ForeignKey
-from sqlalchemy.orm import sessionmaker,relationship
+from sqlalchemy.orm import sessionmaker,relationship,column_property
+from sqlalchemy.sql import case
 
 from config import *
 import mail_templates
@@ -180,6 +181,20 @@ class NodeSet:
         measurements = self._gen_measurements_all()
         influx.write_points(measurements)
 
+class StateChange(Base):
+    __tablename__ = 'state_changes'
+
+    id = Column(Integer, Sequence('state_change_id_seq'), primary_key=True)
+    node_id = Column(Integer, ForeignKey('nodes.id'))
+    node = relationship("Node", back_populates="state_changes")
+    alarm_at = Column(DateTime, default=func.now())
+    resolved_at = Column(DateTime, default=None)
+    is_resolved = column_property(case(
+        [(resolved_at == None, False)], else_=True))
+    state = column_property(case(value=is_resolved, whens={
+        True: 'ok',
+        False: 'alarm'
+    }))
 
 class Node(Base):
     __tablename__ = 'nodes'
@@ -191,6 +206,7 @@ class Node(Base):
     state = Column(String(16))
     user_id = Column(Integer, ForeignKey('users.id'))
     user = relationship("User", back_populates="nodes")
+    state_changes = relationship("StateChange", back_populates="node")
 
     def __init__(self, name, nodeid, ip):
         self.name = name
@@ -292,26 +308,46 @@ class Node(Base):
 
         self.state = new_state
         session.add(self)
-        session.commit()
         return True
 
     def check_alarm(self, session):
-        return self._abstract_check(
+        is_alarm = self._abstract_check(
             session,
             'alarm',
             lambda total, lost: lost / total > 0.9
         )
+        if is_alarm:
+            s = StateChange()
+            s.node = self
+            session.add(s)
+            session.commit()
+        return is_alarm
 
     def check_resolved(self, session):
-        return self._abstract_check(
+        is_resolved = self._abstract_check(
             session,
             'ok',
             lambda total, lost: lost / total < 0.3
         )
+        if is_resolved:
+            res = self.latest_state_change
+            res.resolved_at = func.now()
+            session.add(res)
+            session.commit()
+        return is_resolved
+
+    @property
+    def latest_state_change(self):
+        return session.query(StateChange).\
+            filter(StateChange.node_id == self.id).\
+            order_by(StateChange.id.desc()).\
+            limit(1).one()
+
 
 @event.listens_for(Node, 'load')
 def on_load(instance, context):
     instance.pings = np.empty((0,3))
+
 
 cache = NodesJSONCache()
 db = NodeSet()
