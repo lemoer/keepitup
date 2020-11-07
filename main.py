@@ -116,10 +116,10 @@ class NodeSet:
 
         self.nodes = q.all()
 
-    def ping_all(self):
-        self.ping_sliced()
+    def ping_all(self, timeout=1):
+        self.ping_sliced(timeout=timeout)
 
-    def ping_sliced(self, start=0, step=1):
+    def ping_sliced(self, start=0, step=1, timeout=1):
         assert(start < step)
 
         sliced_nodes = self.nodes[start::step]
@@ -133,7 +133,9 @@ class NodeSet:
 
         mp.send()
 
-        responses, no_responses = mp.receive(1)
+        responses, no_responses = mp.receive(timeout)
+
+        print(responses)
 
         for node in sliced_nodes: 
             rtt = np.NaN
@@ -176,7 +178,7 @@ class Node(Base):
     user_id = Column(Integer, ForeignKey('users.id'))
     user = relationship("User", back_populates="nodes")
 
-    def __init__(self):
+    def __init__(self, name, ip, nodeid):
         self.name = name
         self.ip = ip
         self.nodeid = nodeid
