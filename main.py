@@ -150,8 +150,6 @@ class NodeSet:
 
         responses, no_responses = mp.receive(timeout)
 
-        print(responses)
-
         for node in sliced_nodes: 
             rtt = np.NaN
 
@@ -190,13 +188,15 @@ class Node(Base):
     name = Column(String(64))
     nodeid = Column(String(32))
     ip = Column(String(64))
+    state = Column(String(16))
     user_id = Column(Integer, ForeignKey('users.id'))
     user = relationship("User", back_populates="nodes")
 
-    def __init__(self, name, ip, nodeid):
+    def __init__(self, name, nodeid, ip):
         self.name = name
-        self.ip = ip
         self.nodeid = nodeid
+        self.ip = ip
+        self.state = "ok"
 
         # two column array containing (time, rtt, committed)
         # -> rtt = NaN means ping was lost
@@ -268,6 +268,46 @@ class Node(Base):
 
         self.pings = np.delete(self.pings, idx, 0)
 
+    def _count_pings_total_and_lost(self, delta_minutes):
+        idx = np.where(self.pings[:,0] > datetime.datetime.now() - datetime.timedelta(minutes=delta_minutes))
+        pings = self.pings[idx,1]
+
+        return (np.size(pings,1), np.sum(np.isnan(np.double(pings))))
+
+    def _abstract_check(self, session, new_state, condition):
+        # do not fire state change again, if we are already in a state
+        if self.state == new_state:
+            return False
+
+        total, lost = self._count_pings_total_and_lost(delta_minutes=5)
+
+        # if there are less than 5 ping records in the last 5 minutes, then
+        # there is not enough confidence to raise state changes
+        if total < 5:
+            return False
+
+        # condition for state change
+        if not condition(total, lost):
+            return False
+
+        self.state = new_state
+        session.add(self)
+        session.commit()
+        return True
+
+    def check_alarm(self, session):
+        return self._abstract_check(
+            session,
+            'alarm',
+            lambda total, lost: lost / total > 0.9
+        )
+
+    def check_resolved(self, session):
+        return self._abstract_check(
+            session,
+            'ok',
+            lambda total, lost: lost / total < 0.3
+        )
 
 @event.listens_for(Node, 'load')
 def on_load(instance, context):
