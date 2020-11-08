@@ -221,7 +221,10 @@ def subscribe():
         db.commit()
 
         flash('Subscribed to node ' + node.name + '.', 'success')
-        return redirect_to_last_page()
+        if request.args.get('goto') == 'yes':
+            return redirect(url_for('node', nodeid=node.nodeid))
+        else:
+            return redirect_to_last_page()
 
 
     db = get_db()
