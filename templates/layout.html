@@ -48,10 +48,11 @@
 					{% if user %}
 					<h4>Your Subscriptions:</h4>
 					<ul>
-					{% for node in user.subscribed_nodes %}
+					{% for subscription in user.subscriptions %}
+						{% set node = subscription.node %}
 						<li>
 							<a href="{{ url_for('node', nodeid=node.nodeid) }}">
-								{{ node.name }}</a> ({{ node.state | format_state | safe}})
+								{{ node.name }}</a> ({{ node.state | format_state | safe}}{% if not subscription.send_notifications %}, silenced{% endif %})
 						</li>
 					{% endfor %}
 					</ul>

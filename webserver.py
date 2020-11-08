@@ -44,7 +44,41 @@ def node(nodeid):
 
     now = datetime.datetime.now()
     pings = np.flipud(node.pings)
-    return render_template("node.html", node=node, now=now, pings=pings)
+
+    subscription = node.get_subscription_by_user(db, get_user())
+
+    return render_template("node.html", node=node, now=now, pings=pings, subscription=subscription)
+
+@app.route('/node/<nodeid>/toggle_notifications')
+def toggle_notifications(nodeid):
+    db = get_db()
+    nodeset = NodeSet()
+    nodeset.update_from_db(db)
+
+    user = get_user()
+
+    if not user:
+        flash('Error: You need to be logged in to toggle notifications.', 'danger')
+        return redirect('/')
+
+
+    node = nodeset.find_by_nodeid(nodeid)
+
+    if not node:
+        flash('Error: Node with nodeid ' + nodeid + " not found!", 'danger')
+        return redirect_to_last_page()
+
+    subscription = node.get_subscription_by_user(db, user)
+
+    if not subscription:
+        flash('Error: Toggling notifications failed. You were not subscribed to ' + node.name + "!", 'danger')
+        return redirect_to_last_page()
+
+    subscription.send_notifications = not subscription.send_notifications
+    db.add(subscription)
+    db.commit()
+    return redirect_to_last_page()
+
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -153,7 +187,7 @@ def logout():
 
         flash('Logged out.', 'info')
 
-    return redirect('/')
+    return redirect_to_last_page()
 
 def redirect_to_last_page():
     referrer = request.headers.get("Referer", None)
@@ -238,10 +272,7 @@ def unsubscribe():
         flash('Error: Unsubscribe failed. Node with nodeid ' + request.args['nodeid'] + " not found!", 'danger')
         return redirect_to_last_page()
 
-    subscription = db.query(Subscription).\
-        filter(Subscription.node == node).\
-        filter(Subscription.user == user).\
-        one_or_none()
+    subscription = node.get_subscription_by_user(db, user)
 
     if not subscription:
         flash('Error: Unsubscribe failed. You were not subscribed to ' + node.name + "!", 'danger')

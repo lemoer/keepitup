@@ -428,6 +428,14 @@ class Node(Base):
         # nodes in db have an id, others don't
         return bool(self.id)
 
+    def get_subscription_by_user(self, session, user):
+        if user is None:
+            return None
+        return session.query(Subscription).\
+            filter(Subscription.node == self).\
+            filter(Subscription.user == user).\
+            one_or_none()
+
 
 @event.listens_for(Node, 'load')
 def on_load(instance, context):

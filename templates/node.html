@@ -6,11 +6,19 @@
 Current IP: <a href="http://[{{ node.ip }}]/">{{ node.ip }}</a><br>
 Current State: {{ node.state | format_state | safe }}<br>
 {% if user %}
+Notifications:
+{% if not subscription %}
+not subscribed
+{% elif subscription.send_notifications %}
+yes
+{% else %}
+no
+{% endif %} <br>
 Actions:
-{% if node not in user.subscribed_nodes %}
+{% if not subscription %}
 <a href="{{ url_for('subscribe', nodeid=node.nodeid) }}">subscribe</a>
 {% else %}
-<a href="{{ url_for('unsubscribe', nodeid=node.nodeid) }}">unsubscribe</a>
+<a href="{{ url_for('unsubscribe', nodeid=node.nodeid) }}">unsubscribe</a>, <a href="{{ url_for('toggle_notifications', nodeid=node.nodeid) }}">toggle notifications</a>
 {% endif %}
 <br>
 {% endif %}
