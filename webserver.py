@@ -147,6 +147,7 @@ def logout():
 def subscribe():
     user = get_user()
     if not user:
+        flash('Error: You need to be logged in to subscribe.', 'danger')
         return redirect('/')
 
     def res(code):
