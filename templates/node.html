@@ -1,0 +1,47 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h1>{{ node.name }}</h1>
+
+Current IP: <a href="http://[{{ node.ip }}]/">{{ node.ip }}</a><br>
+Current State: <span class="{% if node.state != 'ok' %}text-danger{% else %}text-success{% endif %}">{{ node.state }}</span><br><br>
+
+<h4>Latest Alarms:</h4>
+<table class="table">
+  <thead>
+    <tr>
+      <th scope="col">Start</th>
+      <th scope="col">End</th>
+      <th scope="col">Duration</th>
+    </tr>
+  </thead>
+  <tbody>
+  	{% for state_change in node.state_changes %}
+    <tr>
+      <td>{{ state_change.alarm_at }}</td>
+      <td>{{ state_change.resolved_at or '-' }}</td>
+      <td class="{% if not state_change.is_resolved %}text-danger{% else %}text-success{% endif %}">{{ state_change.duration_str }}</td>
+    </tr>
+  	{% endfor %}
+  </tbody>
+</table>
+
+<h4>Latest Pings:</h4>
+<table class="table">
+  <thead>
+    <tr>
+      <th scope="col">Time</th>
+      <th scope="col">RTT</th>
+    </tr>
+  </thead>
+  <tbody>
+  	{% for ping in pings %}
+    <tr>
+      <td>{{ '{:3.0f}s ago'.format((now - ping[0]).total_seconds()) }}</td>
+      <td>{{ '{:.1f} ms'.format(ping[1]*1000) }}</td>
+    </tr>
+  	{% endfor %}
+  </tbody>
+</table>
+
+{% endblock %}

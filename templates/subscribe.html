@@ -1,0 +1,12 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h1>Subscribe</h1>
+
+<ul>
+{% for node in nodes_json_cache.nodes %}
+	<li>{{ node.name }} (<a href="{{ url_for('subscribe', nodeid=node.nodeid) }}">subscribe</a>)</li>
+{% endfor %}
+</ul>
+
+{% endblock %}

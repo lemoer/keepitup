@@ -1,0 +1,76 @@
+<!doctype html>
+<html>
+	<head>
+		<title>Hello from Flask</title>
+		<link rel="stylesheet" href="{{ url_for('static', filename='/vendor/twbs/bootstrap/dist/css/bootstrap.min.css') }}" ></link>
+		<script type="text/javascript" src="{{ url_for('static', filename='/vendor/twbs/bootstrap/dist/js/bootstrap.min.js') }}"></script>
+	</head>
+	<body>
+		<div class="container-fluid">
+			<div class="row align-items-start">
+				<nav class="navbar navbar-dark bg-dark">
+					<div class="container-fluid">
+						<a class="navbar-brand" href="/">Pingtester</a>
+						{% if user %}
+						<span style="color: white;">Logged in as {{ user.email }}</span>
+						{% endif %}
+						<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+							<span class="navbar-toggler-icon"></span>
+						</button>
+						<div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+							<div class="navbar-nav">
+								<a class="nav-link active" aria-current="page" href="/">Home</a>
+								{% if user %}
+								<a class="nav-link" href="{{ url_for('subscribe') }}">Subscribe</a>
+								<a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+								{% else%}
+								<a class="nav-link" href="{{ url_for('register') }}">Register</a>
+								{% endif %}
+							</div>
+						</div>
+					</div>
+				</nav>
+			</div>
+		</div>
+		<div class="container-fluid">
+			<div class="row align-items-start">
+				<div class="col-3 bg-light">
+					{% if user %}
+					<h4>Your Nodes:</h4>
+					<ul>
+					{% for node in user.nodes %}
+						<li>
+							<a href="{{ url_for('node', nodeid=node.nodeid) }}">
+								{{ node.name }}</a> (<span class="{% if node.state != 'ok' %}text-danger{% else %}text-success{% endif %}">{{ node.state }}</span>)
+						</li>
+					{% endfor %}
+					</ul>
+					{% endif %}
+					<h4>Monitored Nodes:</h4>
+					<ul>
+					{% for node in node_list.nodes %}
+						<li>
+							<a href="{{ url_for('node', nodeid=node.nodeid) }}">
+								{{ node.name }}</a> (<span class="{% if node.state != 'ok' %}text-danger{% else %}text-success{% endif %}">{{ node.state }}</span>)
+						</li>
+					{% endfor %}
+					</ul>
+				</div>
+				<div class="col-9">
+					{% with messages = get_flashed_messages(with_categories=true) %}
+						{% if messages %}
+							{% for category, message in messages %}
+							<div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+							  	{{ message }}
+							  	<button type="button" class="btn-close" data-dismiss="alert" aria-label="Close"></button>
+							</div>
+							{% endfor %}
+						{% endif %}
+					{% endwith %}
+					{% block content %}{% endblock %}
+				</div>
+			</div>
+		</div>
+		
+	</body>
+</html>

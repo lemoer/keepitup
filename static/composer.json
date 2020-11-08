@@ -1,0 +1,10 @@
+{
+    "require": {
+        "twbs/bootstrap": "5.0.0-alpha2"
+    },
+    "extra": {
+        "installer-paths": {
+            "twbs/bootstrap": ["static"]
+	}
+    }
+}

@@ -21,6 +21,8 @@ from sqlalchemy.sql import case
 from config import *
 import mail_templates
 
+SQLITE_URI = 'sqlite:///foo.db'
+
 Base = declarative_base()
 
 
@@ -177,6 +179,12 @@ class NodeSet:
         measurements = self._gen_measurements_all()
         influx.write_points(measurements)
 
+    def find_by_nodeid(self, nodeid):
+        for node in self.nodes:
+            if node.nodeid == nodeid:
+                return node
+
+
 class StateChange(Base):
     __tablename__ = 'state_changes'
 
@@ -191,6 +199,26 @@ class StateChange(Base):
         True: 'ok',
         False: 'alarm'
     }))
+
+    @property
+    def duration_str(self):
+        if not self.is_resolved:
+            return "ongoing"
+
+        delta = self.resolved_at - self.alarm_at
+
+        if delta.total_seconds() > 24*60*60:
+            return "%d days" % (delta.total_seconds() / 24 / 60 / 60)
+
+        if delta.total_seconds() > 60*60:
+            return "%d hrs" % (delta.total_seconds() / 60 / 60)
+
+        if delta.total_seconds() > 60:
+            return "%d min" % (delta.total_seconds() / 60)
+
+
+        return "%d s" % delta.total_seconds()
+
 
 class Node(Base):
     __tablename__ = 'nodes'
@@ -344,7 +372,7 @@ def on_load(instance, context):
     instance.pings = np.empty((0,3))
 
 def get_session():
-    engine = create_engine('sqlite:///foo.db')
+    engine = create_engine(SQLITE_URI)
 
     Session = sessionmaker()
     Session.configure(bind=engine)

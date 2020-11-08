@@ -1,3 +1,5 @@
 config.py
 venv
 __pycache__
+static/composer.lock
+static/vendor
