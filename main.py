@@ -359,7 +359,8 @@ class Node(Base):
 
     def _abstract_check(self, session, new_state, condition):
         # do not fire state change again, if we are already in a state
-        if self.state == new_state:
+        old_state = self.state
+        if old_state == new_state:
             return False
 
         total, lost = self._count_pings_total_and_lost(delta_minutes=5)
@@ -375,6 +376,10 @@ class Node(Base):
 
         self.state = new_state
         session.add(self)
+        if old_state == 'waiting':
+            # changes from 'waiting' do not count as state changes
+            session.commit()
+            return False
         return True
 
     def check_alarm(self, session):
