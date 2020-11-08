@@ -155,6 +155,14 @@ def logout():
 
     return redirect('/')
 
+def redirect_to_last_page():
+    referrer = request.headers.get("Referer", None)
+
+    if referrer:
+        return redirect(referrer)
+
+    return redirect('/')
+
 @app.route('/subscribe')
 def subscribe():
     user = get_user()
@@ -165,22 +173,10 @@ def subscribe():
     def res(code):
         return render_template("subscribe.html", nodes_json_cache=nodes_json_cache), code
 
-    db = get_db()
-    nodeset = NodeSet()
-    nodeset.update_from_db(db)
-    nodes_json_cache = NodesJSONCache()
-    nodes_json_cache.update(nodeset)
-
-    if "nodeid" in request.args:
-        node = nodes_json_cache.find_by_nodeid(request.args['nodeid'])
-
-        if not node:
-            flash('Error: Node with nodeid ' + request.args['nodeid'] + " not found!", 'danger')
-            return res(400)
-
+    def try_subscribe(node):
         if user in node.subscribed_users:
             flash('Error: You are already subscribed to ' + node.name + '!', 'danger')
-            return res(400)
+            return redirect_to_last_page()
 
         s = Subscription()
         s.user = user
@@ -191,6 +187,77 @@ def subscribe():
         db.commit()
 
         flash('Subscribed to node ' + node.name + '.', 'success')
-        return redirect('/subscribe')
+        return redirect_to_last_page()
+
+
+    db = get_db()
+    nodeset = NodeSet()
+    nodeset.update_from_db(db)
+
+    # First, we try to query the nodeset. By chance, someone is already
+    # subscribed to this node. This is usually faster than loading the
+    # nodes.json.
+    if "nodeid" in request.args:
+        node = nodeset.find_by_nodeid(request.args['nodeid'])
+
+        if node:
+            return try_subscribe(node)
+
+    nodes_json_cache = NodesJSONCache()
+    nodes_json_cache.update(nodeset)
+
+    if "nodeid" in request.args:
+        node = nodes_json_cache.find_by_nodeid(request.args['nodeid'])
+
+        if not node:
+            flash('Error: Node with nodeid ' + request.args['nodeid'] + " not found!", 'danger')
+            return res(400)
+
+        return try_subscribe(node)
 
     return res(200)
+
+@app.route('/unsubscribe')
+def unsubscribe():
+    user = get_user()
+    if not user:
+        flash('Error: You need to be logged in to unsubscribe.', 'danger')
+        return redirect('/')
+
+    if 'nodeid' not in request.args:
+        flash('Error: Unsubscribe failed. No nodeid was given.', 'danger')
+        return redirect_to_last_page()
+
+    db = get_db()
+    nodeset = NodeSet()
+    nodeset.update_from_db(db)
+
+    node = nodeset.find_by_nodeid(request.args['nodeid'])
+
+    if not node:
+        flash('Error: Unsubscribe failed. Node with nodeid ' + request.args['nodeid'] + " not found!", 'danger')
+        return redirect_to_last_page()
+
+    subscription = db.query(Subscription).\
+        filter(Subscription.node == node).\
+        filter(Subscription.user == user).\
+        one_or_none()
+
+    if not subscription:
+        flash('Error: Unsubscribe failed. You were not subscribed to ' + node.name + "!", 'danger')
+        return redirect_to_last_page()
+
+    db.delete(subscription)
+    db.commit()
+
+    flash('Sucessfully unsubscribed from ' + node.name + "!", 'info')
+
+    if len(node.subscriptions) == 0:
+        db.delete(node)
+        db.commit()
+        flash('Node ' + node.name + ' was removed, because nobody subscribes to it anymore.', 'info')
+
+        return redirect('/')
+
+    return redirect_to_last_page()
+
