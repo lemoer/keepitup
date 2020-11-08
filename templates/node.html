@@ -4,7 +4,12 @@
 <h1>{{ node.name }}</h1>
 
 Current IP: <a href="http://[{{ node.ip }}]/">{{ node.ip }}</a><br>
-Current State: <span class="{% if node.state != 'ok' %}text-danger{% else %}text-success{% endif %}">{{ node.state }}</span><br><br>
+Current State: <span class="{% if node.state != 'ok' %}text-danger{% else %}text-success{% endif %}">{{ node.state }}</span><br>
+{% if node not in user.subscribed_nodes %}
+<a href="{{ url_for('subscribe', nodeid=node.nodeid) }}">subscribe</a>
+<br>
+{% endif %}
+<br>
 
 <h4>Latest Alarms:</h4>
 <table class="table">

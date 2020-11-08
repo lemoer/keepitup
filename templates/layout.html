@@ -36,9 +36,9 @@
 			<div class="row align-items-start">
 				<div class="col-3 bg-light">
 					{% if user %}
-					<h4>Your Nodes:</h4>
+					<h4>Your Subscriptions:</h4>
 					<ul>
-					{% for node in user.nodes %}
+					{% for node in user.subscribed_nodes %}
 						<li>
 							<a href="{{ url_for('node', nodeid=node.nodeid) }}">
 								{{ node.name }}</a> (<span class="{% if node.state != 'ok' %}text-danger{% else %}text-success{% endif %}">{{ node.state }}</span>)

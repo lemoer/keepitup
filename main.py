@@ -33,7 +33,7 @@ class User(Base):
     email_confirmed = Column(Boolean, default=False)
     email_token = Column(String(64), default=lambda: secrets.token_urlsafe(64))
     created_at = Column(DateTime, default=func.now())
-    nodes = relationship("Node", back_populates="user")
+    subscriptions = relationship("Subscription", back_populates="user")
 
     def __repr__(self):
         return "<User(email='%s', confirmed='%s')>" % (
@@ -64,13 +64,17 @@ class User(Base):
                 server.starttls(context=context)
             server.sendmail(SMTP_FROM, self.email, mail)
 
+    @property
+    def subscribed_nodes(self):
+        return [subscription.node for subscription in self.subscriptions]
+
 
 class NodesJSONCache:
 
     def __init__(self):
         self.nodes = []
 
-    def update(self):
+    def update(self, nodeset):
         res = requests.get(NODES_JSON_URL)
 
         if not res.ok:
@@ -81,6 +85,12 @@ class NodesJSONCache:
         try:
             for node in res.json()['nodes']:
                 nodeinfo = node['nodeinfo']
+
+                db_node = nodeset.find_by_nodeid(nodeinfo['node_id'])
+                if db_node:
+                    nodes += [db_node]
+                    continue
+
                 addresses = nodeinfo['network']['addresses']
                 if len(addresses) > 0:
                     address = addresses[0]
@@ -115,6 +125,16 @@ class NodesJSONCache:
         session.commit()
 
 
+class Subscription(Base):
+    __tablename__ = 'subscriptions'
+
+    user_id = Column(Integer, ForeignKey('users.id'), primary_key=True)
+    node_id = Column(Integer, ForeignKey('nodes.id'), primary_key=True)
+    send_notifications = Column(Boolean, default=False)
+    user = relationship("User", back_populates="subscriptions")
+    node = relationship("Node", back_populates="subscriptions")
+
+
 class NodeSet:
 
     def __init__(self):
@@ -126,6 +146,7 @@ class NodeSet:
 
         q = session.query(Node)
         if filter_user is not None:
+            # TODO: update here
             q = q.filter(Node.user == filter_user)
 
         self.nodes = q.all()
@@ -229,7 +250,7 @@ class Node(Base):
     ip = Column(String(64))
     state = Column(String(16))
     user_id = Column(Integer, ForeignKey('users.id'))
-    user = relationship("User", back_populates="nodes")
+    subscriptions = relationship("Subscription", back_populates="node")
     state_changes = relationship("StateChange", back_populates="node")
 
     def __init__(self, name, nodeid, ip):
@@ -366,10 +387,20 @@ class Node(Base):
             order_by(StateChange.id.desc()).\
             limit(1).one()
 
+    @property
+    def subscribed_users(self):
+        return [subscription.user for subscription in self.subscriptions]
+
+    @property
+    def is_in_db(self):
+        # nodes in db should have an id, others don't
+        return bool(self.id)
+
 
 @event.listens_for(Node, 'load')
 def on_load(instance, context):
     instance.pings = np.empty((0,3))
+
 
 def get_session():
     engine = create_engine(SQLITE_URI)
@@ -378,9 +409,26 @@ def get_session():
     Session.configure(bind=engine)
     return Session()
 
+
 def get_influx():
     return InfluxDBClient(INFLUX_HOST, INFLUX_PORT, INFLUX_USER, INFLUX_PASS, INFLUX_DATABASE)
 
+
+def init_db():
+    engine = create_engine(SQLITE_URI)
+
+    classes = [Node, User, StateChange, Subscription]
+
+    for cls in classes:
+        cls.metadata.create_all(engine)
+
+
+if __name__ == '__main__':
+    influx = get_influx()
+    db = get_session()
+
+    nodeset = NodeSet()
+    nodeset.update_from_db(db)
 #User.metadata.create_all(engine)
 
 #cache = NodesJSONCache()

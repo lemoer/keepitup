@@ -11,14 +11,13 @@ app = Flask(__name__)
 app.secret_key = FLASK_SECRET_KEY
 app.config['SQLALCHEMY_DATABASE_URI'] = SQLITE_URI
 
-db = SQLAlchemy(app)
+sqlalchemy = SQLAlchemy(app)
 
-nodes_json_cache = NodesJSONCache()
 influx = get_influx()
 
 def get_db():
-    global db
-    return db.session
+    global sqlalchemy
+    return sqlalchemy.session
 
 @app.errorhandler(404)
 def page_not_found(e):
@@ -153,19 +152,29 @@ def subscribe():
     def res(code):
         return render_template("subscribe.html", nodes_json_cache=nodes_json_cache), code
 
+    db = get_db()
+    nodeset = NodeSet()
+    nodeset.update_from_db(db)
     nodes_json_cache = NodesJSONCache()
-    nodes_json_cache.update()
+    nodes_json_cache.update(nodeset)
 
     if "nodeid" in request.args:
         node = nodes_json_cache.find_by_nodeid(request.args['nodeid'])
 
         if not node:
-            flash('Node with nodeid ' + request.args['nodeid'] + " not found!", 'danger')
+            flash('Error: Node with nodeid ' + request.args['nodeid'] + " not found!", 'danger')
             return res(400)
 
-        node.user = user
-        db = get_db()
-        db.add(node)
+        if user in node.subscribed_users:
+            flash('Error: You are already subscribed to ' + node.name + '!', 'danger')
+            return res(400)
+
+        s = Subscription()
+        s.user = user
+        s.node = node
+
+        db.add(s)
+        db.add(node) # node might not be in db yet
         db.commit()
 
         flash('Subscribed to node ' + node.name + '.', 'success')
