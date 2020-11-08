@@ -4,7 +4,7 @@
 <h1>{{ node.name }}</h1>
 
 Current IP: <a href="http://[{{ node.ip }}]/">{{ node.ip }}</a><br>
-Current State: <span class="{% if node.state != 'ok' %}text-danger{% else %}text-success{% endif %}">{{ node.state }}</span><br>
+Current State: {{ node.state | format_state | safe }}<br>
 {% if user and node not in user.subscribed_nodes %}
 <a href="{{ url_for('subscribe', nodeid=node.nodeid) }}">subscribe</a>
 <br>
@@ -43,7 +43,11 @@ Current State: <span class="{% if node.state != 'ok' %}text-danger{% else %}text
   	{% for ping in pings %}
     <tr>
       <td>{{ '{:3.0f}s ago'.format((now - ping[0]).total_seconds()) }}</td>
+      {% if np.isnan(ping[1]) %}
+      <td class="text-danger">lost</td>
+      {% else %}
       <td>{{ '{:.1f} ms'.format(ping[1]*1000) }}</td>
+      {% endif %}
     </tr>
   	{% endfor %}
   </tbody>

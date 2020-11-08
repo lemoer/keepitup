@@ -51,7 +51,7 @@
 					{% for node in user.subscribed_nodes %}
 						<li>
 							<a href="{{ url_for('node', nodeid=node.nodeid) }}">
-								{{ node.name }}</a> (<span class="{% if node.state != 'ok' %}text-danger{% else %}text-success{% endif %}">{{ node.state }}</span>)
+								{{ node.name }}</a> ({{ node.state | format_state | safe}})
 						</li>
 					{% endfor %}
 					</ul>

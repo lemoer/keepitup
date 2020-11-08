@@ -35,10 +35,12 @@ def node(nodeid):
     nodeset.update_from_db(db)
 
     node = nodeset.find_by_nodeid(nodeid)
-    node.load_from_influx(influx, datetime.timedelta(minutes=15))
 
     if not node:
+        flash('Error: Node with nodeid ' + nodeid + " not found!", 'danger')
         abort(404)
+
+    node.load_from_influx(influx, datetime.timedelta(minutes=15))
 
     now = datetime.datetime.now()
     pings = np.flipud(node.pings)
@@ -100,8 +102,18 @@ def inject_stuff():
     nodeset = NodeSet()
     nodeset.update_from_db(db)
 
-    return dict(node_list=nodeset, user=get_user())
+    return dict(node_list=nodeset, user=get_user(), np=np)
 
+@app.template_filter('format_state')
+def format_state(state_str):
+    if state_str == 'ok':
+        css_class = 'text-success'
+    elif state_str == 'alarm':
+        css_class = 'text-danger'
+    else:
+        css_class = 'text-muted'
+
+    return '<span class="%s">%s</span>' % (css_class, state_str)
 
 @app.route('/login')
 def login():

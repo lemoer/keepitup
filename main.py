@@ -55,8 +55,11 @@ class User(Base):
 
     def send_confirm_mail(self, url):
         url = url + "?email=" + self.email + "&token=" + self.email_token
-        mail = mail_templates.CONFIRM.format(self=self, SMTP_FROM=SMTP_FROM, url=url)
+        mail = mail_templates.CONFIRM.format(user=self, SMTP_FROM=SMTP_FROM, url=url)
 
+        self.send_mail(mail)
+
+    def send_mail(self, mail):
         with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
             server.ehlo()
             if SMTP_USE_STARTTLS:
@@ -128,9 +131,9 @@ class NodesJSONCache:
 class Subscription(Base):
     __tablename__ = 'subscriptions'
 
-    user_id = Column(Integer, ForeignKey('users.id'), primary_key=True)
-    node_id = Column(Integer, ForeignKey('nodes.id'), primary_key=True)
-    send_notifications = Column(Boolean, default=False)
+    user_id = Column(Integer, ForeignKey('users.id'), primary_key=True, nullable=False)
+    node_id = Column(Integer, ForeignKey('nodes.id'), primary_key=True, nullable=False)
+    send_notifications = Column(Boolean, default=True)
     user = relationship("User", back_populates="subscriptions")
     node = relationship("Node", back_populates="subscriptions")
 
@@ -240,14 +243,33 @@ class StateChange(Base):
 
         return "%d s" % delta.total_seconds()
 
+    def send_notification_mails(self, url):
+        node = self.node
+
+        for subscription in node.subscriptions:
+            if not subscription.send_notifications:
+                continue
+
+            user = subscription.user
+
+            if self.is_resolved:
+                mail_template = mail_templates.RESOLVED
+            else:
+                mail_template = mail_templates.ALARM
+
+            url = url.format(node=node)
+            mail = mail_template.format(SMTP_FROM=SMTP_FROM, user=user, node=node, url=url)
+
+            user.send_mail(mail)
+
 
 class Node(Base):
     __tablename__ = 'nodes'
 
     id = Column(Integer, Sequence('node_id_seq'), primary_key=True)
     name = Column(String(64))
-    nodeid = Column(String(32))
-    ip = Column(String(64))
+    nodeid = Column(String(32), unique=True)
+    ip = Column(String(64), nullable=False)
     state = Column(String(16))
     user_id = Column(Integer, ForeignKey('users.id'))
     subscriptions = relationship("Subscription", back_populates="node")
@@ -257,7 +279,7 @@ class Node(Base):
         self.name = name
         self.nodeid = nodeid
         self.ip = ip
-        self.state = "ok"
+        self.state = "waiting"
 
         # two column array containing (time, rtt, committed)
         # -> rtt = NaN means ping was lost
@@ -362,11 +384,12 @@ class Node(Base):
             lambda total, lost: lost / total > 0.9
         )
         if is_alarm:
-            s = StateChange()
-            s.node = self
-            session.add(s)
+            state_change = StateChange()
+            state_change.node = self
+            session.add(state_change)
             session.commit()
-        return is_alarm
+            return state_change
+        return None
 
     def check_resolved(self, session):
         is_resolved = self._abstract_check(
@@ -375,11 +398,15 @@ class Node(Base):
             lambda total, lost: lost / total < 0.3
         )
         if is_resolved:
-            res = self.latest_state_change(session)
-            res.resolved_at = func.now()
-            session.add(res)
+            state_change = self.latest_state_change(session)
+            state_change.resolved_at = func.now()
+            session.add(state_change)
             session.commit()
-        return is_resolved
+            return state_change
+        return None
+
+    def check(self, session):
+        return self.check_alarm(session) or self.check_resolved(session)
 
     def latest_state_change(self, session):
         return session.query(StateChange).\
@@ -393,7 +420,7 @@ class Node(Base):
 
     @property
     def is_in_db(self):
-        # nodes in db should have an id, others don't
+        # nodes in db have an id, others don't
         return bool(self.id)
 
 
