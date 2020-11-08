@@ -35,6 +35,16 @@
 		<div class="container-fluid">
 			<div class="row align-items-start">
 				<div class="col-3 bg-light">
+					<br>
+					<h4>Navigation:</h4>
+					<ul>
+						{% if user %}
+							<li><a href="{{ url_for('subscribe') }}">Subscribe to nodes</a></li>
+							<li>You logged in as {{ user.email }}, <a href="{{ url_for('logout') }}">Logout</a></li>
+						{% else%}
+							<li><a href="{{ url_for('register') }}">Sign up</a></li>
+						{% endif %}
+					</ul>
 					{% if user %}
 					<h4>Your Subscriptions:</h4>
 					<ul>
@@ -51,7 +61,7 @@
 					{% for node in node_list.nodes %}
 						<li>
 							<a href="{{ url_for('node', nodeid=node.nodeid) }}">
-								{{ node.name }}</a>{% if node in user.subscribed_nodes %} (subscribed){% endif %}
+								{{ node.name }}</a>{% if user and node in user.subscribed_nodes %} (subscribed){% endif %}
 						</li>
 					{% endfor %}
 					</ul>
