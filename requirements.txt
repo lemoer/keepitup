@@ -6,3 +6,4 @@ git+https://github.com/lemoer/multi-ping.git
 flask
 flask_sqlalchemy
 dnspython
+gunicorn

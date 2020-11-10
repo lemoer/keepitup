@@ -1,0 +1,14 @@
+[Unit]
+Description=Microblog web application
+After=network.target
+PartOf=keepitup.target
+
+[Service]
+User=%SYSTEM_USER%
+WorkingDirectory=%DIR%
+Environment=FLASK_CONFIG=production
+ExecStart=%DIR%/venv/bin/gunicorn -b localhost:8132 -w 4 webserver:app
+Restart=always
+
+[Install]
+WantedBy=keepitup.target
