@@ -34,11 +34,11 @@ Actions:
     </tr>
   </thead>
   <tbody>
-  	{% for state_change in node.state_changes %}
+  	{% for alarm in node.alarms %}
     <tr>
-      <td>{{ state_change.alarm_at }}</td>
-      <td>{{ state_change.resolved_at or '-' }}</td>
-      <td class="{% if not state_change.is_resolved %}text-danger{% else %}text-success{% endif %}">{{ state_change.duration_str }}</td>
+      <td>{{ alarm.alarm_at }}</td>
+      <td>{{ alarm.resolved_at or '-' }}</td>
+      <td class="{% if not alarm.is_resolved %}text-danger{% else %}text-success{% endif %}">{{ alarm.duration_str }}</td>
     </tr>
   	{% endfor %}
   </tbody>

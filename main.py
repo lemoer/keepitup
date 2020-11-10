@@ -209,12 +209,12 @@ class NodeSet:
                 return node
 
 
-class StateChange(Base):
-    __tablename__ = 'state_changes'
+class Alarm(Base):
+    __tablename__ = 'alarms'
 
-    id = Column(Integer, Sequence('state_change_id_seq'), primary_key=True)
+    id = Column(Integer, Sequence('alarm_id_seq'), primary_key=True)
     node_id = Column(Integer, ForeignKey('nodes.id'))
-    node = relationship("Node", back_populates="state_changes")
+    node = relationship("Node", back_populates="alarms")
     alarm_at = Column(DateTime, default=func.now())
     resolved_at = Column(DateTime, default=None)
     is_resolved = column_property(case(
@@ -273,7 +273,7 @@ class Node(Base):
     state = Column(String(16))
     user_id = Column(Integer, ForeignKey('users.id'))
     subscriptions = relationship("Subscription", back_populates="node")
-    state_changes = relationship("StateChange", back_populates="node")
+    alarms = relationship("Alarm", back_populates="node")
 
     def __init__(self, name, nodeid, ip):
         self.name = name
@@ -389,11 +389,11 @@ class Node(Base):
             lambda total, lost: lost / total > 0.9
         )
         if is_alarm:
-            state_change = StateChange()
-            state_change.node = self
-            session.add(state_change)
+            alarm = Alarm()
+            alarm.node = self
+            session.add(alarm)
             session.commit()
-            return state_change
+            return alarm
         return None
 
     def check_resolved(self, session):
@@ -403,20 +403,20 @@ class Node(Base):
             lambda total, lost: lost / total < 0.3
         )
         if is_resolved:
-            state_change = self.latest_state_change(session)
-            state_change.resolved_at = func.now()
-            session.add(state_change)
+            alarm = self.latest_alarm(session)
+            alarm.resolved_at = func.now()
+            session.add(alarm)
             session.commit()
-            return state_change
+            return alarm
         return None
 
     def check(self, session):
         return self.check_alarm(session) or self.check_resolved(session)
 
-    def latest_state_change(self, session):
-        return session.query(StateChange).\
-            filter(StateChange.node_id == self.id).\
-            order_by(StateChange.id.desc()).\
+    def latest_alarm(self, session):
+        return session.query(Alarm).\
+            filter(Alarm.node_id == self.id).\
+            order_by(Alarm.id.desc()).\
             limit(1).one()
 
     @property
@@ -457,7 +457,7 @@ def get_influx():
 def init_db():
     engine = create_engine(SQLITE_URI)
 
-    classes = [Node, User, StateChange, Subscription]
+    classes = [Node, User, Alarm, Subscription]
 
     for cls in classes:
         cls.metadata.create_all(engine)

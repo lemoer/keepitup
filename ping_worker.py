@@ -32,13 +32,13 @@ try:
         nodeset.save_to_influx(influx)
 
         for n in nodeset.nodes:
-            state_change = n.check(session)
-            if state_change is None:
+            alarm = n.check(session)
+            if alarm is None:
                 continue
 
-            state_change.send_notification_mails(APP_URL + '/node/{node.nodeid}')
+            alarm.send_notification_mails(APP_URL + '/node/{node.nodeid}')
 
-            if state_change.is_resolved:
+            if alarm.is_resolved:
                 print("node " + n.name + ": resolved")
             else:
                 print("node " + n.name + ": alarm")
