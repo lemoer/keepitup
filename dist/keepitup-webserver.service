@@ -1,5 +1,5 @@
 [Unit]
-Description=Microblog web application
+Description=The KeepItUp Webserver
 After=network.target
 PartOf=keepitup.target
 
