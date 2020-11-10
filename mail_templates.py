@@ -2,7 +2,7 @@
 
 CONFIRM = """From: {SMTP_FROM}
 To: {user.email}
-Subject: Confirm your email for pingtester! :)
+Subject: Confirm your email for KeepItUp! :)
 
 Hi there,
 
@@ -10,7 +10,7 @@ you need to confirm your email with this token:
 
 {url}
 
-If you have not registered yourself for pingtester,
+If you have not registered yourself for keepitup,
 please kindly ignore this mail.
 
 Kind regards,
@@ -19,7 +19,7 @@ lemoer
 
 ALARM = """From: {SMTP_FROM}
 To: {user.email}
-Subject: [PINGTESTER] alarm: {node.name} is unreachable via ping
+Subject: [KeepItUp] alarm: {node.name} is unreachable via ping
 
 Hi there,
 
@@ -33,7 +33,7 @@ lemoer
 
 RESOLVED = """From: {SMTP_FROM}
 To: {user.email}
-Subject: [PINGTESTER] resolved: {node.name} is unreachable via ping
+Subject: [KeepItUp] resolved: {node.name} is unreachable via ping
 
 Hi there,
 
