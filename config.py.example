@@ -2,6 +2,20 @@
 
 INFLUX_HOST = "[::1]"
 INFLUX_PORT = 8086
-INFLUX_USER = "pingtester"
+INFLUX_USER = "keepitup"
 INFLUX_PASS = "PASSWORD"
-INFLUX_DATABASE = "pingtester"
+INFLUX_DATABASE = "keepitup"
+
+# you can use "python -m smtpd -c DebuggingServer -n localhost:1025" for
+# testing purposes here
+SMTP_HOST = 'localhost'
+SMTP_PORT = 1025
+SMTP_FROM = 'test@foobar.com'
+SMTP_USE_STARTTLS = False
+
+NODES_JSON_URL = 'https://example.com/nodes.json'
+
+# generate via 'python -c "import secrets; print(secrets.token_bytes(16))"'
+FLASK_SECRET_KEY = b'Ia\x19\x00).F\x07\x96V\xca\xea\xd0\xd9i\x16'; raise "REPLACE THIS KEY!"
+# if you are behind a proxy, set the globally reachable url here
+APP_URL = "http://[2a02:790:ff:914:eab1:fcff:fef6:4d16]:8080/"
