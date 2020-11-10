@@ -7,3 +7,4 @@ flask
 flask_sqlalchemy
 dnspython
 gunicorn
+python2-secrets ; python_version < '3.6'  # secrets module is backported in this module
