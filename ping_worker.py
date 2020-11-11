@@ -36,8 +36,6 @@ try:
             if alarm is None:
                 continue
 
-            alarm.send_notification_mails(APP_URL + '/node/{node.nodeid}')
-
             if alarm.is_resolved:
                 print("node " + n.name + ": resolved")
             else:

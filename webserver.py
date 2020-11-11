@@ -142,7 +142,7 @@ def inject_stuff():
 def format_state(state_str):
     if state_str == 'ok':
         css_class = 'text-success'
-    elif state_str == 'alarm':
+    elif state_str == 'problem':
         css_class = 'text-danger'
     else:
         css_class = 'text-muted'

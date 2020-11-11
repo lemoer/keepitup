@@ -25,6 +25,8 @@ SQLITE_URI = 'sqlite:///foo.db'
 
 Base = declarative_base()
 
+if not APP_URL.endswith('/'):
+    APP_URL += '/'
 
 class User(Base):
     __tablename__ = 'users'
@@ -240,11 +242,11 @@ class Alarm(Base):
         if delta.total_seconds() > 60:
             return "%d min" % (delta.total_seconds() / 60)
 
-
         return "%d s" % delta.total_seconds()
 
-    def send_notification_mails(self, url):
+    def send_notification_mails(self):
         node = self.node
+        url = APP_URL + 'node/' + self.node.nodeid
 
         for subscription in node.subscriptions:
             if not subscription.send_notifications:
@@ -357,67 +359,62 @@ class Node(Base):
 
         return (np.size(pings,1), np.sum(np.isnan(np.double(pings))))
 
-    def _abstract_check(self, session, new_state, condition):
-        # do not fire state change again, if we are already in a state
+    def _switch_state(self, session, allowed_new_states):
         old_state = self.state
-        if old_state == new_state:
-            return False
+        new_state = old_state
+        total, lost = self._count_pings_total_and_lost(delta_minutes=5) 
 
-        total, lost = self._count_pings_total_and_lost(delta_minutes=5)
-
-        # if there are less than 5 ping records in the last 5 minutes, then
-        # there is not enough confidence to raise state changes
         if total < 5:
-            return False
+            new_state = 'waiting'
+        elif lost / total < 0.3:
+            new_state = 'ok'
+        elif lost / total > 0.9:
+            new_state = 'problem'
+        
+        if new_state not in allowed_new_states:
+            new_state = old_state
 
-        # condition for state change
-        if not condition(total, lost):
-            return False
-
-        self.state = new_state
-        session.add(self)
-        if old_state == 'waiting':
-            # changes from 'waiting' do not count as state changes
+        if new_state != old_state:
+            self.state = new_state
+            session.add(self)
             session.commit()
-            return False
-        return True
 
-    def check_alarm(self, session):
-        is_alarm = self._abstract_check(
-            session,
-            'alarm',
-            lambda total, lost: lost / total > 0.9
-        )
-        if is_alarm:
+        return old_state, new_state
+
+    def check(self, session, allowed_new_states=['ok','problem','waiting']):
+        """ Checks for state changes. Returns an Alarm object, if an alarm
+        has just been created, or an alarm has just been resolved. This means
+        it only returns an Alarm object if a state change happened. """
+
+        old_state, new_state = self._switch_state(session, allowed_new_states)
+        alarm = None
+
+        if old_state == 'waiting':
+            return
+
+        if new_state == 'waiting':
+            return
+
+        if old_state == 'ok' and new_state == 'problem':
             alarm = Alarm()
             alarm.node = self
-            session.add(alarm)
-            session.commit()
-            return alarm
-        return None
 
-    def check_resolved(self, session):
-        is_resolved = self._abstract_check(
-            session,
-            'ok',
-            lambda total, lost: lost / total < 0.3
-        )
-        if is_resolved:
+        if old_state == 'problem' and new_state == 'ok':
             alarm = self.latest_alarm(session)
             alarm.resolved_at = func.now()
+
+        if alarm:
             session.add(alarm)
             session.commit()
-            return alarm
-        return None
+            alarm.send_notification_mails()
 
-    def check(self, session):
-        return self.check_alarm(session) or self.check_resolved(session)
+        return alarm
 
     def latest_alarm(self, session):
         return session.query(Alarm).\
             filter(Alarm.node_id == self.id).\
             order_by(Alarm.id.desc()).\
-            limit(1).one()
+            limit(1).one_or_none()
 
     @property
     def subscribed_users(self):
