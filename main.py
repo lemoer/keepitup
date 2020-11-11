@@ -281,7 +281,7 @@ class Node(Base):
         self.name = name
         self.nodeid = nodeid
         self.ip = ip
-        self.state = "waiting"
+        self.state = "new"
 
         # two column array containing (time, rtt, committed)
         # -> rtt = NaN means ping was lost
@@ -362,9 +362,11 @@ class Node(Base):
     def _switch_state(self, session, allowed_new_states):
         old_state = self.state
         new_state = old_state
-        total, lost = self._count_pings_total_and_lost(delta_minutes=5) 
+        total, lost = self._count_pings_total_and_lost(delta_minutes=5)
 
-        if total < 5:
+        if total < 5 and old_state == 'new':
+            new_state = old_state
+        elif total < 5:
             new_state = 'waiting'
         elif lost / total < 0.3:
             new_state = 'ok'
@@ -381,7 +383,7 @@ class Node(Base):
 
         return old_state, new_state
 
-    def check(self, session, allowed_new_states=['ok','problem','waiting']):
+    def check(self, session, allowed_new_states=['ok','problem','waiting', 'new']):
         """ Checks for state changes. Returns an Alarm object, if an alarm
         has just been created, or an alarm has just been resolved. This means
         it only returns an Alarm object if a state change happened. """
@@ -396,6 +398,10 @@ class Node(Base):
             return
 
         if old_state == 'ok' and new_state == 'problem':
+            alarm = Alarm()
+            alarm.node = self
+
+        if old_state == 'new' and new_state == 'problem':
             alarm = Alarm()
             alarm.node = self
 
