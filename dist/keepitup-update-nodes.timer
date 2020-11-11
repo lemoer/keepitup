@@ -2,7 +2,7 @@
 Description=The KeepItUp Update Nodes every minute
 
 [Timer]
-OnActiveSec=1m
+OnCalendar=minutely
 
 [Install]
 WantedBy=timers.target
