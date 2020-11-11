@@ -10,7 +10,7 @@ nodeset = NodeSet()
 TIMEOUT = 1
 PING_INTERVAL = 15
 
-influx_keep_time = datetime.timedelta(minutes=15)
+influx_keep_time = datetime.timedelta(minutes=10)
 
 nodeset.update_from_db(session)
 nodeset.load_from_influx(influx, delta=influx_keep_time)
@@ -20,6 +20,7 @@ print("pinger.py, " + str(len(nodeset.nodes)) + " nodes loaded.")
 try:
     while True:
         nodeset.update_from_db(session)
+        nodeset.load_from_influx(influx, delta=influx_keep_time)
 
         for i in range(PING_INTERVAL // TIMEOUT):
             start = time.time()
