@@ -47,7 +47,8 @@ def node(nodeid):
 
     subscription = node.get_subscription_by_user(db, get_user())
 
-    return render_template("node.html", node=node, now=now, pings=pings, subscription=subscription)
+    return render_template("node.html", node=node, now=now, pings=pings,
+                           NODE_LINKS=NODE_LINKS, subscription=subscription)
 
 @app.route('/node/<nodeid>/toggle_notifications')
 def toggle_notifications(nodeid):
