@@ -14,7 +14,7 @@ git clone https://github.com/lemoer/keepitup
 cd keepitup
 cp config.py.example config.py
 # edit your config file now
-sh setup.sh --systemwide
+bash setup.sh --systemwide
 systemctl enable keepitup.target
 systemctl start keepitup.target
 ```

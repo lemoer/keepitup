@@ -4,7 +4,7 @@ set -e
 
 SYSTEMD=/etc/systemd/system/
 DIR=$(realpath $(dirname "$0"))
-SYSTEM_USER=lemoer
+SYSTEM_USER=keepitup
 
 cd $DIR
 
