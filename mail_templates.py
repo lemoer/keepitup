@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
-CONFIRM = """From: {SMTP_FROM}
-To: {user.email}
+CONFIRM = """{HEAD}
 Subject: Confirm your email for KeepItUp! :)
 
 Hi there,
@@ -10,6 +9,10 @@ you need to confirm your email with this token:
 
 {url}
 
+Please keep this mail or token, as you can always
+log into your account with this token again. There
+is no separate password.
+
 If you have not registered yourself for keepitup,
 please kindly ignore this mail.
 
@@ -17,9 +20,8 @@ Kind regards,
 lemoer
 """
 
-ALARM = """From: {SMTP_FROM}
-To: {user.email}
-Subject: [KeepItUp] alarm: {node.name} is unreachable via ping
+ALARM = """{HEAD}
+Subject: [KeepItUp] alarm: {node.name} is unreachable
 
 Hi there,
 
@@ -31,9 +33,8 @@ Kind regards,
 lemoer
 """
 
-RESOLVED = """From: {SMTP_FROM}
-To: {user.email}
-Subject: [KeepItUp] resolved: {node.name} is unreachable via ping
+RESOLVED = """{HEAD}
+Subject: [KeepItUp] resolved: {node.name} is reachable again
 
 Hi there,
 

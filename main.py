@@ -11,6 +11,7 @@ import secrets
 import datetime
 import requests
 import smtplib, ssl
+from email.utils import make_msgid
 
 from sqlalchemy import create_engine, func, event
 from sqlalchemy.ext.declarative import declarative_base
@@ -57,17 +58,34 @@ class User(Base):
 
     def send_confirm_mail(self, url):
         url = url + "?email=" + self.email + "&token=" + self.email_token
-        mail = mail_templates.CONFIRM.format(user=self, SMTP_FROM=SMTP_FROM, url=url)
+        mail_template = mail_templates.CONFIRM
 
-        self.send_mail(mail)
+        self.send_mail(mail_template, url=url)
 
-    def send_mail(self, mail):
+    def send_mail(self, mail_template, in_reply_to = None, **kwargs):
         with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
             server.ehlo()
             if SMTP_USE_STARTTLS:
                 context = ssl.create_default_context()
                 server.starttls(context=context)
+
+            msgid = make_msgid()
+
+            head  = "From: " + SMTP_FROM + "\n"
+            head += "To: " + self.email + "\n"
+            head += "Message-ID: " + msgid + "\n"
+            head += "Reply-To: " + SMTP_REPLY_TO_EMAIL + "\n"
+
+            if in_reply_to:
+                head += "In-Reply-To: " + in_reply_to + "\n"
+                head += "References: " + in_reply_to + "\n"
+
+            kwargs.update(HEAD=head)
+            mail = mail_template.format(**kwargs)
+
             server.sendmail(SMTP_FROM, self.email, mail)
+
+            return msgid
 
     @property
     def subscribed_nodes(self):
@@ -218,6 +236,7 @@ class Alarm(Base):
     node_id = Column(Integer, ForeignKey('nodes.id'))
     node = relationship("Node", back_populates="alarms")
     alarm_at = Column(DateTime, default=func.now())
+    alarm_mail_msgid = Column(String(995), default=None)
     resolved_at = Column(DateTime, default=None)
     is_resolved = column_property(case(
         [(resolved_at == None, False)], else_=True))
@@ -244,7 +263,7 @@ class Alarm(Base):
 
         return "%d s" % delta.total_seconds()
 
-    def send_notification_mails(self):
+    def send_notification_mails(self, session):
         node = self.node
         url = APP_URL + 'node/' + self.node.nodeid
 
@@ -256,13 +275,15 @@ class Alarm(Base):
 
             if self.is_resolved:
                 mail_template = mail_templates.RESOLVED
+
+                user.send_mail(mail_template, in_reply_to=self.alarm_mail_msgid, node=node, url=url)
             else:
                 mail_template = mail_templates.ALARM
 
-            url = url.format(node=node)
-            mail = mail_template.format(SMTP_FROM=SMTP_FROM, user=user, node=node, url=url)
+                self.alarm_mail_msgid = user.send_mail(mail_template, node=node, url=url)
 
-            user.send_mail(mail)
+                session.add(self)
+                session.commit()
 
 
 class Node(Base):
@@ -421,7 +442,7 @@ class Node(Base):
         if alarm:
             session.add(alarm)
             session.commit()
-            alarm.send_notification_mails()
+            alarm.send_notification_mails(session)
 
         return alarm
 
