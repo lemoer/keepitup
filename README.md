@@ -15,6 +15,6 @@ cd keepitup
 cp config.py.example config.py
 # edit your config file now
 bash setup.sh --systemwide
-systemctl enable keepitup.target
 systemctl start keepitup.target
+systemctl start keepitup-update-nodes.timer
 ```

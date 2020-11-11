@@ -4,7 +4,7 @@ set -e
 
 SYSTEMD=/etc/systemd/system/
 DIR=$(realpath $(dirname "$0"))
-SYSTEM_USER=keepitup
+SYSTEM_USER=lemoer
 
 cd $DIR
 
@@ -24,15 +24,16 @@ if [ "$1" == '--systemwide' ]; then
 		echo User ${SYSTEM_USER} already created.
 	fi
 
-	for f in $DIR/dist/*.{service,target}; do
+	for f in $DIR/dist/*.{service,target,timer}; do
 		sudo cp "$f" "$SYSTEMD"
 		sudo sed -i "s\\%DIR%\\$DIR\\g" "$SYSTEMD"/$(basename "$f")
 		sudo sed -i "s\\%SYSTEM_USER%\\${SYSTEM_USER}\\g" "$SYSTEMD"/$(basename "$f")
 	done
-	# Only enable the services, but not the target.
-	for f in $DIR/dist/*.service; do
-		sudo systemctl enable $(basename "$f")
-	done
+
+	sudo systemctl enable keepitup-worker.service
+	sudo systemctl enable keepitup-webserver.service
+	sudo systemctl enable keepitup-update-nodes.timer
+	sudo systemctl enable keepitup.target
 
 	sudo systemctl daemon-reload
 

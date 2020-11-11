@@ -1,0 +1,8 @@
+[Unit]
+Description=The KeepItUp Update Nodes every minute
+
+[Timer]
+OnUnitActiveSec=1m
+
+[Install]
+WantedBy=timers.target

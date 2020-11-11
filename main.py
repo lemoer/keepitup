@@ -98,7 +98,7 @@ class NodesJSONCache:
     def __init__(self):
         self.nodes = []
 
-    def update(self, nodeset):
+    def update(self, nodeset=None):
         res = requests.get(NODES_JSON_URL)
 
         if not res.ok:
@@ -110,10 +110,11 @@ class NodesJSONCache:
             for node in res.json()['nodes']:
                 nodeinfo = node['nodeinfo']
 
-                db_node = nodeset.find_by_nodeid(nodeinfo['node_id'])
-                if db_node:
-                    nodes += [db_node]
-                    continue
+                if nodeset:
+                    db_node = nodeset.find_by_nodeid(nodeinfo['node_id'])
+                    if db_node:
+                        nodes += [db_node]
+                        continue
 
                 addresses = nodeinfo['network']['addresses']
                 if len(addresses) > 0:
@@ -134,7 +135,7 @@ class NodesJSONCache:
             if node.nodeid == nodeid:
                 return node
 
-    def update_db_node(self, session, node):
+    def update_db_node(self, node):
         other = self.find_by_nodeid(node.nodeid)
 
         # node does not exist in nodes.json anymore, so we can not
@@ -144,9 +145,6 @@ class NodesJSONCache:
 
         node.ip = other.ip
         node.name = other.name
-
-        session.add(node)
-        session.commit()
 
 
 class Subscription(Base):
