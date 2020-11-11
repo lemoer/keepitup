@@ -71,16 +71,17 @@ class User(Base):
 
             msgid = make_msgid()
 
-            head  = "From: " + SMTP_FROM + "\n"
-            head += "To: " + self.email + "\n"
-            head += "Message-ID: " + msgid + "\n"
-            head += "Reply-To: " + SMTP_REPLY_TO_EMAIL + "\n"
+            head = []
+            head += ["From: " + SMTP_FROM]
+            head += ["To: " + self.email]
+            head += ["Message-ID: " + msgid]
+            head += ["Reply-To: " + SMTP_REPLY_TO_EMAIL]
 
             if in_reply_to:
-                head += "In-Reply-To: " + in_reply_to + "\n"
-                head += "References: " + in_reply_to + "\n"
+                head += ["In-Reply-To: " + in_reply_to]
+                head += ["References: " + in_reply_to]
 
-            kwargs.update(HEAD=head)
+            kwargs.update(HEAD="\n".join(head))
             mail = mail_template.format(**kwargs)
 
             server.sendmail(SMTP_FROM, self.email, mail)
