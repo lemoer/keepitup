@@ -373,7 +373,7 @@ class Node(Base):
     def flush_cache(self, delta=datetime.timedelta(seconds=0)):
         now = datetime.datetime.now()
 
-        idx = self.pings[:,0] < now - delta
+        idx = np.where(self.pings[:,0] < now - delta)
 
         self.pings = np.delete(self.pings, idx, 0)
 
