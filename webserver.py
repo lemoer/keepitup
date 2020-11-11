@@ -138,16 +138,16 @@ def inject_stuff():
 
     return dict(node_list=nodeset, user=get_user(), np=np)
 
-@app.template_filter('format_state')
-def format_state(state_str):
-    if state_str == 'ok':
+@app.template_filter('show_constitution')
+def show_constitution(node):
+    if node.constitution == 'ok':
         css_class = 'text-success'
-    elif state_str == 'problem':
+    elif node.constitution == 'problem':
         css_class = 'text-danger'
     else:
         css_class = 'text-muted'
 
-    return '<span class="%s">%s</span>' % (css_class, state_str)
+    return '<span class="%s">%s</span>' % (css_class, node.constitution)
 
 @app.route('/login')
 def login():

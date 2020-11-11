@@ -52,7 +52,7 @@
 						{% set node = subscription.node %}
 						<li>
 							<a href="{{ url_for('node', nodeid=node.nodeid) }}">
-								{{ node.name }}</a> ({{ node.state | format_state | safe}}{% if not subscription.send_notifications %}, silenced{% endif %})
+								{{ node.name }}</a> ({{ node | show_constitution | safe}}{% if not subscription.send_notifications %}, silenced{% endif %})
 						</li>
 					{% endfor %}
 					</ul>

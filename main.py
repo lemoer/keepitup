@@ -273,6 +273,7 @@ class Node(Base):
     nodeid = Column(String(32), unique=True)
     ip = Column(String(64), nullable=False)
     state = Column(String(16))
+    is_waiting = Column(Boolean, default=True)
     user_id = Column(Integer, ForeignKey('users.id'))
     subscriptions = relationship("Subscription", back_populates="node")
     alarms = relationship("Alarm", back_populates="node")
@@ -282,6 +283,7 @@ class Node(Base):
         self.nodeid = nodeid
         self.ip = ip
         self.state = "new"
+        self.is_waiting = True
 
         # two column array containing (time, rtt, committed)
         # -> rtt = NaN means ping was lost
@@ -361,17 +363,14 @@ class Node(Base):
 
     def _switch_state(self, session, allowed_new_states):
         old_state = self.state
-        new_state = old_state
         total, lost = self._count_pings_total_and_lost(delta_minutes=5)
 
-        if total < 5 and old_state == 'new':
-            new_state = old_state
-        elif total < 5:
-            new_state = 'waiting'
-        elif lost / total < 0.3:
+        if lost / total < 0.3:
             new_state = 'ok'
         elif lost / total > 0.9:
             new_state = 'problem'
+        else:
+            new_state = old_state
         
         if new_state not in allowed_new_states:
             new_state = old_state
@@ -383,27 +382,37 @@ class Node(Base):
 
         return old_state, new_state
 
+    def _update_waiting(self, session):
+        """ This function calculates and updates the watiing status. New nodes
+        could lose their first packet and would directly end up in problem
+        state even if their loss rate is e.g. just 1%. Therefore we want at
+        least 5 ping packets in the last 5 minutes. If for any reason hosts are
+        not pinged by the worker anymore, they should fall back to the waiting
+        constitution within 1 minute. """
+        total_1min, _ = self._count_pings_total_and_lost(delta_minutes=1)
+        total_5min, _ = self._count_pings_total_and_lost(delta_minutes=5)
+        self.is_waiting = total_1min < 1 or total_5min < 5
+        session.add(self)
+        session.commit()
+
     def check(self, session, allowed_new_states=['ok','problem','waiting', 'new']):
         """ Checks for state changes. Returns an Alarm object, if an alarm
         has just been created, or an alarm has just been resolved. This means
         it only returns an Alarm object if a state change happened. """
 
+        self._update_waiting(session)
+        if self.is_waiting:
+            # switching state is only allowed when node is not waiting
+            return None
+
         old_state, new_state = self._switch_state(session, allowed_new_states)
         alarm = None
 
-        if old_state == 'waiting':
-            return
-
-        if new_state == 'waiting':
-            return
-
         if old_state == 'ok' and new_state == 'problem':
-            alarm = Alarm()
-            alarm.node = self
+            alarm = Alarm(node=self)
 
         if old_state == 'new' and new_state == 'problem':
-            alarm = Alarm()
-            alarm.node = self
+            alarm = Alarm(node=self)
 
         if old_state == 'problem' and new_state == 'ok':
             alarm = self.latest_alarm(session)
@@ -438,6 +447,13 @@ class Node(Base):
             filter(Subscription.node == self).\
             filter(Subscription.user == user).\
             one_or_none()
+
+    @property
+    def constitution(self):
+        if self.is_waiting:
+            return 'waiting'
+        else:
+            return self.state
 
 
 @event.listens_for(Node, 'load')
