@@ -117,7 +117,7 @@ class NodesJSONCache:
                         continue
 
                 addresses = nodeinfo['network']['addresses']
-                if len(addresses) > 0:
+                if addresses and len(addresses) > 0:
                     address = addresses[0]
                 else:
                     address = None
