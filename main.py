@@ -383,7 +383,7 @@ class Node(Base):
 
     def _switch_state(self, session, allowed_new_states):
         old_state = self.state
-        total, lost = self._count_pings_total_and_lost(delta_minutes=5)
+        total, lost = self._count_pings_total_and_lost(delta_minutes=60)
 
         if lost / total < 0.3:
             new_state = 'ok'
