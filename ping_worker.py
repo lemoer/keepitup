@@ -10,7 +10,7 @@ nodeset = NodeSet()
 TIMEOUT = 1
 PING_INTERVAL = 15
 
-influx_keep_time = datetime.timedelta(minutes=10)
+influx_keep_time = datetime.timedelta(minutes=60)
 
 nodeset.update_from_db(session)
 nodeset.load_from_influx(influx, delta=influx_keep_time)
