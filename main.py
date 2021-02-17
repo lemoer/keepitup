@@ -6,6 +6,7 @@ from dateutil.parser import parse as parse_time
 import numpy as np
 import sys
 import time
+import pytz
 import pprint
 import secrets
 import datetime
@@ -76,6 +77,7 @@ class User(Base):
             head += ["To: " + self.email]
             head += ["Message-ID: " + msgid]
             head += ["Reply-To: " + SMTP_REPLY_TO_EMAIL]
+            head += ["Date: " + datetime.datetime.now(pytz.utc).strftime("%a, %e %b %Y %T %z")]
 
             if in_reply_to:
                 head += ["In-Reply-To: " + in_reply_to]
@@ -121,7 +123,7 @@ class NodesJSONCache:
                     address = addresses[0]
                 else:
                     address = None
-                
+
                 n = Node(nodeinfo['hostname'], nodeinfo['node_id'], address)
                 nodes += [n]
         except KeyError:
@@ -192,7 +194,7 @@ class NodeSet:
 
         responses, no_responses = mp.receive(timeout)
 
-        for node in sliced_nodes: 
+        for node in sliced_nodes:
             rtt = np.NaN
 
             if node.ip in responses:
@@ -296,7 +298,7 @@ class Node(Base):
     is_waiting = Column(Boolean, default=True)
     user_id = Column(Integer, ForeignKey('users.id'))
     subscriptions = relationship("Subscription", back_populates="node")
-    alarms = relationship("Alarm", back_populates="node")
+    alarms = relationship("Alarm", back_populates="node", order_by="desc(Alarm.id)")
 
     def __init__(self, name, nodeid, ip):
         self.name = name
@@ -391,7 +393,7 @@ class Node(Base):
             new_state = 'problem'
         else:
             new_state = old_state
-        
+
         if new_state not in allowed_new_states:
             new_state = old_state
 
@@ -512,7 +514,7 @@ if __name__ == '__main__':
 
 #cache = NodesJSONCache()
 #db = NodeSet()
-#client = 
+#client =
 #db = NodeDB(client)
 #b = Node("fial", "1337", "8.8.8.1")
 #Node.metadata.create_all(engine)
