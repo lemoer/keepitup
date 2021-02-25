@@ -30,6 +30,8 @@ FLASK_SECRET_KEY = b'Ia\x19\x00).F\x07\x96V\xca\xea\xd0\xd9i\x16'; raise "REPLAC
 APP_URL = "http://[2a02:790:ff:914:eab1:fcff:fef6:4d16]:8080/"
 
 NODE_LINKS = {
-	"Map": "https://hannover.freifunk.net/karte/#/de/map/{node.nodeid}",
-	"Stats": "https://stats.ffh.zone/d/000000021/router-fur-meshviewer?orgId=1&from=now-7d&to=now-1m&var-node={node.nodeid}"
+    "Map": "https://hannover.freifunk.net/karte/#/de/map/{node.nodeid}",
+    "Stats": "https://stats.ffh.zone/d/000000021/router-fur-meshviewer?orgId=1&from=now-7d&to=now-1m&var-node={node.nodeid}"
 }
+
+DEBUG = False

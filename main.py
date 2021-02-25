@@ -64,31 +64,35 @@ class User(Base):
         self.send_mail(mail_template, url=url)
 
     def send_mail(self, mail_template, in_reply_to = None, **kwargs):
-        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
-            server.ehlo()
-            if SMTP_USE_STARTTLS:
-                context = ssl.create_default_context()
-                server.starttls(context=context)
+        msgid = make_msgid()
 
-            msgid = make_msgid()
+        head = []
+        head += ["From: " + SMTP_FROM]
+        head += ["To: " + self.email]
+        head += ["Message-ID: " + msgid]
+        head += ["Reply-To: " + SMTP_REPLY_TO_EMAIL]
+        head += ["Date: " + datetime.datetime.now(pytz.utc).strftime("%a, %e %b %Y %T %z")]
 
-            head = []
-            head += ["From: " + SMTP_FROM]
-            head += ["To: " + self.email]
-            head += ["Message-ID: " + msgid]
-            head += ["Reply-To: " + SMTP_REPLY_TO_EMAIL]
-            head += ["Date: " + datetime.datetime.now(pytz.utc).strftime("%a, %e %b %Y %T %z")]
+        if in_reply_to:
+            head += ["In-Reply-To: " + in_reply_to]
+            head += ["References: " + in_reply_to]
 
-            if in_reply_to:
-                head += ["In-Reply-To: " + in_reply_to]
-                head += ["References: " + in_reply_to]
+        kwargs.update(HEAD="\n".join(head))
+        mail = mail_template.format(**kwargs)
 
-            kwargs.update(HEAD="\n".join(head))
-            mail = mail_template.format(**kwargs)
+        if DEBUG:
+            with open("/tmp/keepitup_mails.log", "a") as f:
+                f.write(mail + "\n")
+        else:
+            with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
+                server.ehlo()
+                if SMTP_USE_STARTTLS:
+                    context = ssl.create_default_context()
+                    server.starttls(context=context)
 
             server.sendmail(SMTP_FROM, self.email, mail)
 
-            return msgid
+        return msgid
 
     @property
     def subscribed_nodes(self):
