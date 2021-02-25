@@ -48,7 +48,7 @@
 					{% if user %}
 					<h4>Your Subscriptions:</h4>
 					<ul>
-					{% for subscription in user.subscriptions %}
+					{% for subscription in user.subscriptions|sort(attribute='node.name') %}
 						{% set node = subscription.node %}
 						<li>
 							<a href="{{ url_for('node', nodeid=node.nodeid) }}">
@@ -59,7 +59,7 @@
 					{% endif %}
 					<h4>All Monitored Nodes:</h4>
 					<ul>
-					{% for node in node_list.nodes %}
+					{% for node in node_list.nodes|sort(attribute='name') %}
 						<li>
 							<a href="{{ url_for('node', nodeid=node.nodeid) }}">
 								{{ node.name }}</a>{% if user and node in user.subscribed_nodes %} (subscribed){% endif %}
