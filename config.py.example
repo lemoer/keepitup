@@ -1,18 +1,5 @@
 #!/usr/bin/env python3
 
-# Create stuff via influx shell:
-# $ influx -username YOUR_ADMIN_USER -password YOUR_ADMIN_PASSWORD
-# Connected to http://localhost:8086 version 1.8.3
-# InfluxDB shell version: 1.8.3
-# > CREATE USER keepitup WITH PASSWORD '<PASSWORD>';
-# > CREATE DATABASE keepitup;
-# > GRANT ALL ON "keepitup" TO keepitup;
-INFLUX_HOST = "[::1]"  # can be set to False, to deactivate influxdb
-INFLUX_PORT = 8086
-INFLUX_USER = "keepitup"
-INFLUX_PASS = "PASSWORD"
-INFLUX_DATABASE = "keepitup"
-
 # you can use "python -m smtpd -c DebuggingServer -n localhost:1025" for
 # testing purposes here
 SMTP_HOST = 'localhost'
