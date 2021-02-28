@@ -90,7 +90,7 @@ class User(Base):
                     context = ssl.create_default_context()
                     server.starttls(context=context)
 
-            server.sendmail(SMTP_FROM, self.email, mail)
+                server.sendmail(SMTP_FROM, self.email, mail)
 
         return msgid
 
