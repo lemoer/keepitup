@@ -345,8 +345,29 @@ class Node(Base):
         else:
             return self.state
 
+class DBVersion(Base):
+    __tablename__ = 'db_version'
 
+    id = Column(Integer, Sequence('version_id_seq'), primary_key=True)
+    version = Column(Integer)
 
+    def __init__(self):
+        self.id = 1
+
+    @classmethod
+    def get(cls, session):
+        version_obj = session.query(DBVersion).one_or_none()
+        if not version_obj:
+            return 0
+        return version_obj.version
+
+    @classmethod
+    def set(cls, session, new_version):
+        version_obj = session.query(DBVersion).one_or_none()
+        if not version_obj:
+            version_obj = DBVersion()
+        version_obj.version = new_version
+        session.add(version_obj)
 
 def get_session():
     engine = create_engine(SQLITE_URI)
