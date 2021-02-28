@@ -5,9 +5,9 @@
 
 <ul>
 {% for node in nodes_json_cache.nodes|sort(attribute='name') %}
-	{% set show_subscribe = node not in user.subscribed_nodes and node.ip %}
+	{% set show_subscribe = node not in user.subscribed_nodes %}
 	{% set show_goto = node.is_in_db %}
-	<li>{{ node.name }} ({% if show_goto %}<a href="{{ url_for('node', nodeid=node.nodeid) }}">goto</a>, {% endif %}{% if show_subscribe %}<a href="{{ url_for('subscribe', nodeid=node.nodeid) }}">subscribe</a>, <a href="{{ url_for('subscribe', nodeid=node.nodeid,goto='yes') }}">subscribe & goto</a>{% else %}{% if node.ip %}subscribed{% else %}no address in nodes.json{% endif %}{% endif %})</li>
+	<li>{{ node.name }} ({% if show_goto %}<a href="{{ url_for('node', nodeid=node.nodeid) }}">goto</a>, {% endif %}{% if show_subscribe %}<a href="{{ url_for('subscribe', nodeid=node.nodeid) }}">subscribe</a>, <a href="{{ url_for('subscribe', nodeid=node.nodeid,goto='yes') }}">subscribe & goto</a>{% else %}no address in nodes.json{% endif %})</li>
 {% endfor %}
 </ul>
 

@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-from multiping import MultiPing
-from influxdb import InfluxDBClient
 from dateutil.parser import parse as parse_time
 import numpy as np
 import sys
@@ -135,13 +133,7 @@ class NodesJSONCache:
                         nodes += [db_node]
                         continue
 
-                addresses = nodeinfo['network']['addresses']
-                if addresses and len(addresses) > 0:
-                    address = addresses[0]
-                else:
-                    address = None
-
-                n = Node(nodeinfo['hostname'], nodeinfo['node_id'], address)
+                n = Node(nodeinfo['hostname'], nodeinfo['node_id'])
                 nodes += [n]
         except KeyError:
             print("warning: NodesJSONCache detected wrong format for " + NODES_JSON_URL + "!", file=sys.stderr)
@@ -162,7 +154,6 @@ class NodesJSONCache:
         if not other:
             return
 
-        node.ip = other.ip
         node.name = other.name
 
 
@@ -191,55 +182,6 @@ class NodeSet:
             q = q.filter(Node.user == filter_user)
 
         self.nodes = q.all()
-
-    def ping_all(self, timeout=1):
-        self.ping_sliced(timeout=timeout)
-
-    def ping_sliced(self, start=0, step=1, timeout=1):
-        assert(start < step)
-
-        sliced_nodes = self.nodes[start::step]
-        if len(sliced_nodes) == 0:
-            return
-
-        send_time = datetime.datetime.now()
-
-        ips = [node.ip for node in sliced_nodes]
-        mp = MultiPing(ips)
-
-        mp.send()
-
-        responses, no_responses = mp.receive(timeout)
-
-        for node in sliced_nodes:
-            rtt = np.NaN
-
-            if node.ip in responses:
-                rtt = responses[node.ip]
-
-            node.pings = np.vstack((node.pings, [send_time, rtt, 0]))
-
-    def load_from_influx(self, influx, delta=datetime.timedelta(days=40*365)):
-        time = datetime.datetime.now() - delta
-        res = influx.query("SELECT * FROM pingtester_ping WHERE time > $time;",
-                bind_params=dict(time=time.isoformat()+"Z"))
-
-        for node in self.nodes:
-            node.parse_from_influx(res)
-
-    def _gen_measurements_all(self):
-        measurements = []
-        for node in self.nodes:
-            measurements += node.gen_measurements()
-        return measurements
-
-    def flush_cache_all(self, delta=datetime.timedelta(seconds=0)):
-        for node in self.nodes:
-            node.flush_cache(delta)
-
-    def save_to_influx(self, influx):
-        measurements = self._gen_measurements_all()
-        influx.write_points(measurements)
 
     def find_by_nodeid(self, nodeid):
         for node in self.nodes:
@@ -310,109 +252,23 @@ class Node(Base):
     id = Column(Integer, Sequence('node_id_seq'), primary_key=True)
     name = Column(String(64))
     nodeid = Column(String(32), unique=True)
-    ip = Column(String(64), nullable=False)
     state = Column(String(16))
     is_waiting = Column(Boolean, default=True)
     user_id = Column(Integer, ForeignKey('users.id'))
     subscriptions = relationship("Subscription", back_populates="node")
     alarms = relationship("Alarm", back_populates="node", order_by="desc(Alarm.id)")
 
-    def __init__(self, name, nodeid, ip):
+    def __init__(self, name, nodeid):
         self.name = name
         self.nodeid = nodeid
-        self.ip = ip
         self.state = "new"
         self.is_waiting = True
 
-        # two column array containing (time, rtt, committed)
-        # -> rtt = NaN means ping was lost
-        self.pings = np.empty((0,3))
-
-    def gen_measurements(self):
-        """ Generate InfluxDB Measurements for the yet uncommitted
-        measurements and mark them as committed. """
-        idx = np.where(self.pings[:,2] == 0)[0]
-
-        measurements = []
-        for i in idx:
-            ping = self.pings[i, :]
-
-            if np.isnan(ping[1]):
-                fields = { "lost": 1 }
-            else:
-                fields = { "rtt": ping[1] }
-
-            measurements.append({
-                "measurement": "pingtester_ping",
-                "tags": {
-                    "name": self.name,
-                    "nodeid": self.nodeid
-                },
-                "time": ping[0],
-                "fields": fields
-            })
-
-        # mark them as committed
-        self.pings[idx, 2] = 1
-
-        return measurements
-
-    def load_from_influx(self, influx, delta=datetime.timedelta(days=40*365)):
-        time = datetime.datetime.now() - delta
-        res = influx.query("SELECT * FROM pingtester_ping WHERE nodeid=$nodeid and time > $time;",
-                bind_params=dict(nodeid=self.nodeid, time=time.isoformat()+"Z"))
-
-        self.parse_from_influx(res)
-
-    def parse_from_influx(self, influx_result):
-        if np.size(self.pings, 0) > 0:
-            max_send_time = max(self.pings[:,0])
-        else:
-            max_send_time = None
-
-        for r in influx_result.get_points(tags={"nodeid": self.nodeid}):
-            if r['nodeid'] != self.nodeid:
-                continue
-
-            send_time = parse_time(r['time'], ignoretz=True)
-
-            # this row is most likely already loaded
-            if max_send_time and send_time <= max_send_time:
-                continue
-
-            if r['lost'] == 1:
-                rtt = np.NaN
-            else:
-                rtt = r['rtt']
-
-            self.pings = np.vstack((self.pings, [send_time, rtt, 1]))
-
-    def flush_cache(self, delta=datetime.timedelta(seconds=0)):
-        now = datetime.datetime.now()
-
-        idx = np.where(self.pings[:,0] < now - delta)
-
-        self.pings = np.delete(self.pings, idx, 0)
-
-    def _count_pings_total_and_lost(self, delta_minutes):
-        idx = np.where(self.pings[:,0] > datetime.datetime.now() - datetime.timedelta(minutes=delta_minutes))
-        pings = self.pings[idx,1]
-
-        return (np.size(pings,1), np.sum(np.isnan(np.double(pings))))
-
-    def _switch_state(self, session, allowed_new_states):
+    def _switch_state(self, session):
         old_state = self.state
-        total, lost = self._count_pings_total_and_lost(delta_minutes=60)
 
-        if lost / total < 0.3:
-            new_state = 'ok'
-        elif lost / total > 0.9:
-            new_state = 'problem'
-        else:
-            new_state = old_state
-
-        if new_state not in allowed_new_states:
-            new_state = old_state
+        # TODO: adjust here
+        new_state = 'problem'
 
         if new_state != old_state:
             self.state = new_state
@@ -422,19 +278,14 @@ class Node(Base):
         return old_state, new_state
 
     def _update_waiting(self, session):
-        """ This function calculates and updates the watiing status. New nodes
-        could lose their first packet and would directly end up in problem
-        state even if their loss rate is e.g. just 1%. Therefore we want at
-        least 5 ping packets in the last 5 minutes. If for any reason hosts are
-        not pinged by the worker anymore, they should fall back to the waiting
-        constitution within 1 minute. """
-        total_1min, _ = self._count_pings_total_and_lost(delta_minutes=1)
-        total_5min, _ = self._count_pings_total_and_lost(delta_minutes=5)
-        self.is_waiting = total_1min < 1 or total_5min < 5
+        """ This function calculates and updates the waiting status."""
+
+        # TODO: implement me again
+        self.is_waiting = False
         session.add(self)
         session.commit()
 
-    def check(self, session, allowed_new_states=['ok','problem','waiting', 'new']):
+    def check(self, session):
         """ Checks for state changes. Returns an Alarm object, if an alarm
         has just been created, or an alarm has just been resolved. This means
         it only returns an Alarm object if a state change happened. """
@@ -444,7 +295,7 @@ class Node(Base):
             # switching state is only allowed when node is not waiting
             return None
 
-        old_state, new_state = self._switch_state(session, allowed_new_states)
+        old_state, new_state = self._switch_state(session)
         alarm = None
 
         if old_state == 'ok' and new_state == 'problem':
@@ -495,9 +346,6 @@ class Node(Base):
             return self.state
 
 
-@event.listens_for(Node, 'load')
-def on_load(instance, context):
-    instance.pings = np.empty((0,3))
 
 
 def get_session():
@@ -506,11 +354,6 @@ def get_session():
     Session = sessionmaker()
     Session.configure(bind=engine)
     return Session()
-
-
-def get_influx():
-    if INFLUX_HOST:
-        return InfluxDBClient(INFLUX_HOST, INFLUX_PORT, INFLUX_USER, INFLUX_PASS, INFLUX_DATABASE)
 
 
 def init_db():
@@ -523,28 +366,7 @@ def init_db():
 
 
 if __name__ == '__main__':
-    influx = get_influx()
     db = get_session()
 
     nodeset = NodeSet()
     nodeset.update_from_db(db)
-#User.metadata.create_all(engine)
-
-#cache = NodesJSONCache()
-#db = NodeSet()
-#client =
-#db = NodeDB(client)
-#b = Node("fial", "1337", "8.8.8.1")
-#Node.metadata.create_all(engine)
-#a = Node("google", "12213123", "8.8.8.8")
-#
-#
-#
-#Node.#
-#Node.send_all()
-#Node.send_all()
-#
-#client.write_points(Node.gen_measurements_all())
-#db.update_from_db(session, User.find_by_email(session, "me@irrelefant.net"))
-#db.load_from_influx(client)
-#print(db.nodes[0].pings)

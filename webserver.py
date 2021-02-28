@@ -16,8 +16,6 @@ babel = Babel(app)
 
 sqlalchemy = SQLAlchemy(app)
 
-influx = get_influx()
-
 @babel.localeselector
 def get_locale():
     # otherwise try to guess the language from the user accept
@@ -50,15 +48,11 @@ def node(nodeid):
         flash('Error: Node with nodeid ' + nodeid + " not found!", 'danger')
         abort(404)
 
-    if influx:
-        node.load_from_influx(influx, datetime.timedelta(minutes=15))
-
     now = datetime.datetime.now()
-    pings = np.flipud(node.pings)
 
     subscription = node.get_subscription_by_user(db, get_user())
 
-    return render_template("node.html", node=node, now=now, pings=pings,
+    return render_template("node.html", node=node, now=now,
                            NODE_LINKS=NODE_LINKS, subscription=subscription)
 
 @app.route('/node/<nodeid>/toggle_notifications')
