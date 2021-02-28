@@ -12,6 +12,7 @@ python3 -m venv venv
 . venv/bin/activate
 pip install -r requirements.txt
 (cd static; composer install)
+./translate.sh compile
 
 # init db
 venv/bin/python -c 'from main import *; init_db();'

@@ -19,7 +19,7 @@ SMTP_HOST = 'localhost'
 SMTP_PORT = 1025
 SMTP_FROM = 'test@foobar.com'
 # If users reply to service emails, they will send mails to the SMTP_REPLY_TO_EMAIL
-SMTP_REPLY_TO_EMAIL = 'some_real_email@foobar.com' 
+SMTP_REPLY_TO_EMAIL = 'some_real_email@foobar.com'
 SMTP_USE_STARTTLS = False
 
 NODES_JSON_URL = 'https://example.com/nodes.json'
@@ -30,8 +30,14 @@ FLASK_SECRET_KEY = b'Ia\x19\x00).F\x07\x96V\xca\xea\xd0\xd9i\x16'; raise "REPLAC
 APP_URL = "http://[2a02:790:ff:914:eab1:fcff:fef6:4d16]:8080/"
 
 NODE_LINKS = {
+<<<<<<< HEAD
     "Map": "https://hannover.freifunk.net/karte/#/de/map/{node.nodeid}",
     "Stats": "https://stats.ffh.zone/d/000000021/router-fur-meshviewer?orgId=1&from=now-7d&to=now-1m&var-node={node.nodeid}"
 }
 
 DEBUG = False
+=======
+	"Map": "https://hannover.freifunk.net/karte/#/de/map/{node.nodeid}",
+	"Stats": "https://stats.ffh.zone/d/000000021/router-fur-meshviewer?orgId=1&from=now-7d&to=now-1m&var-node={node.nodeid}"
+}
+>>>>>>> 78c5ad3 (Add pybabel translation support)

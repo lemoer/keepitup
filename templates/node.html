@@ -8,33 +8,33 @@ Current IP: <a href="http://[{{ node.ip }}]/">{{ node.ip }}</a><br>
 Links: {% for descr, href in NODE_LINKS.items() %}<a href="{{href.format(node=node)}}">{{descr}}</a>{{ ", " if not loop.last }}{% endfor %}
 {% endif %}
 <br>
-Current constitution: {{ node | show_constitution | safe }}<br>
+{{ _('Current constitution') }}: {{ node | show_constitution | safe }}<br>
 {% if user %}
-Notifications:
+{{ _('Notifications') }}:
 {% if not subscription %}
-not subscribed
+{{ _('not subscribed') }}
 {% elif subscription.send_notifications %}
-yes
+{{ _('yes') }}
 {% else %}
-no
+{{ _('no') }}
 {% endif %} <br>
-Actions:
+{{ _('Actions') }}:
 {% if not subscription %}
-<a href="{{ url_for('subscribe', nodeid=node.nodeid) }}">subscribe</a>
+<a href="{{ url_for('subscribe', nodeid=node.nodeid) }}">{{ _('subscribe') }}</a>
 {% else %}
-<a href="{{ url_for('unsubscribe', nodeid=node.nodeid) }}">unsubscribe</a>, <a href="{{ url_for('toggle_notifications', nodeid=node.nodeid) }}">toggle notifications</a>
+<a href="{{ url_for('unsubscribe', nodeid=node.nodeid) }}">{{ _('unsubscribe') }}</a>, <a href="{{ url_for('toggle_notifications', nodeid=node.nodeid) }}">{{ _('toggle notifications') }}</a>
 {% endif %}
 <br>
 {% endif %}
 <br>
 
-<h4>Latest Alarms:</h4>
+<h4>{{ _('Latest Alarms') }}:</h4>
 <table class="table">
   <thead>
     <tr>
-      <th scope="col">Start</th>
-      <th scope="col">End</th>
-      <th scope="col">Duration</th>
+      <th scope="col">{{ _('Start') }}</th>
+      <th scope="col">{{ _('End') }}</th>
+      <th scope="col">{{ _('Duration') }}</th>
     </tr>
   </thead>
   <tbody>

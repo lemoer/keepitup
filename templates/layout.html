@@ -46,7 +46,7 @@
 						{% endif %}
 					</ul>
 					{% if user %}
-					<h4>Your Subscriptions:</h4>
+					<h4>{{ _('Your Subscriptions') }}:</h4>
 					<ul>
 					{% for subscription in user.subscriptions|sort(attribute='node.name') %}
 						{% set node = subscription.node %}
@@ -57,7 +57,7 @@
 					{% endfor %}
 					</ul>
 					{% endif %}
-					<h4>All Monitored Nodes:</h4>
+					<h4>{{ _('All Monitored Nodes') }}:</h4>
 					<ul>
 					{% for node in node_list.nodes|sort(attribute='name') %}
 						<li>

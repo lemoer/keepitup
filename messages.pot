@@ -1,0 +1,79 @@
+# Translations template for PROJECT.
+# Copyright (C) 2021 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2021.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2021-02-28 17:32+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.9.0\n"
+
+#: templates/layout.html:49
+msgid "Your Subscriptions"
+msgstr ""
+
+#: templates/layout.html:60
+msgid "All Monitored Nodes"
+msgstr ""
+
+#: templates/node.html:11
+msgid "Current constitution"
+msgstr ""
+
+#: templates/node.html:13
+msgid "Notifications"
+msgstr ""
+
+#: templates/node.html:15
+msgid "not subscribed"
+msgstr ""
+
+#: templates/node.html:17
+msgid "yes"
+msgstr ""
+
+#: templates/node.html:19
+msgid "no"
+msgstr ""
+
+#: templates/node.html:21
+msgid "Actions"
+msgstr ""
+
+#: templates/node.html:23
+msgid "subscribe"
+msgstr ""
+
+#: templates/node.html:25
+msgid "unsubscribe"
+msgstr ""
+
+#: templates/node.html:25
+msgid "toggle notifications"
+msgstr ""
+
+#: templates/node.html:31
+msgid "Latest Alarms"
+msgstr ""
+
+#: templates/node.html:35
+msgid "Start"
+msgstr ""
+
+#: templates/node.html:36
+msgid "End"
+msgstr ""
+
+#: templates/node.html:37
+msgid "Duration"
+msgstr ""
+

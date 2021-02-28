@@ -5,15 +5,24 @@ from main import *
 import dns.resolver
 from config import *
 from flask_sqlalchemy import SQLAlchemy
-
+from flask_babel import Babel, gettext
 
 app = Flask(__name__)
 app.secret_key = FLASK_SECRET_KEY
 app.config['SQLALCHEMY_DATABASE_URI'] = SQLITE_URI
+app.config['BABEL_DEFAULT_LOCALE'] = 'en'
+babel = Babel(app)
 
 sqlalchemy = SQLAlchemy(app)
 
 influx = get_influx()
+
+@babel.localeselector
+def get_locale():
+    # otherwise try to guess the language from the user accept
+    # header the browser transmits.  We support de/fr/en in this
+    # example.  The best match wins.
+    return request.accept_languages.best_match(['de', 'fr', 'en'])
 
 def get_db():
     global sqlalchemy
@@ -128,7 +137,7 @@ def get_user():
 
     if email:
         user = User.find_by_email(db, email)
-    
+
     return user
 
 @app.context_processor
@@ -296,4 +305,3 @@ def unsubscribe():
         return redirect('/')
 
     return redirect_to_last_page()
-
