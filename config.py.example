@@ -7,7 +7,7 @@
 # > CREATE USER keepitup WITH PASSWORD '<PASSWORD>';
 # > CREATE DATABASE keepitup;
 # > GRANT ALL ON "keepitup" TO keepitup;
-INFLUX_HOST = "[::1]"
+INFLUX_HOST = "[::1]"  # can be set to False, to deactivate influxdb
 INFLUX_PORT = 8086
 INFLUX_USER = "keepitup"
 INFLUX_PASS = "PASSWORD"

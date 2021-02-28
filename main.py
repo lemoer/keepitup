@@ -496,7 +496,8 @@ def get_session():
 
 
 def get_influx():
-    return InfluxDBClient(INFLUX_HOST, INFLUX_PORT, INFLUX_USER, INFLUX_PASS, INFLUX_DATABASE)
+    if INFLUX_HOST:
+        return InfluxDBClient(INFLUX_HOST, INFLUX_PORT, INFLUX_USER, INFLUX_PASS, INFLUX_DATABASE)
 
 
 def init_db():

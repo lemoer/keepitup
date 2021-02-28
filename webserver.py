@@ -40,7 +40,8 @@ def node(nodeid):
         flash('Error: Node with nodeid ' + nodeid + " not found!", 'danger')
         abort(404)
 
-    node.load_from_influx(influx, datetime.timedelta(minutes=15))
+    if influx:
+        node.load_from_influx(influx, datetime.timedelta(minutes=15))
 
     now = datetime.datetime.now()
     pings = np.flipud(node.pings)
