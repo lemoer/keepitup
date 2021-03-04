@@ -19,7 +19,7 @@ fi
 cd "$(dirname "$0")"
 
 case "$1" in
-  update)   pybabel extract -F babel.cfg -o messages.pot . && pybabel update -i messages.pot -d translations -l de ;;
+  update)   pybabel extract -F babel.cfg -o messages.pot . && pybabel update --no-fuzzy-matching -i messages.pot -d translations -l de ;;
   compile)   pybabel compile -d translations/ ;;
   *) echo "ERROR: command $1 not found."; exit 1;;
 esac
