@@ -4,6 +4,7 @@ sqlalchemy
 git+https://github.com/lemoer/multi-ping.git
 #multiping
 flask
+flask_babel
 flask_sqlalchemy
 dnspython
 gunicorn
