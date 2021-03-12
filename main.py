@@ -13,6 +13,10 @@ import datetime
 import requests
 import smtplib, ssl
 from email.utils import make_msgid
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.header import Header
+from email.charset import Charset, QP
 
 from sqlalchemy import create_engine, func, event
 from sqlalchemy.ext.declarative import declarative_base
@@ -66,19 +70,31 @@ class User(Base):
     def send_mail(self, mail_template, in_reply_to = None, **kwargs):
         msgid = make_msgid()
 
-        head = []
-        head += ["From: " + SMTP_FROM]
-        head += ["To: " + self.email]
-        head += ["Message-ID: " + msgid]
-        head += ["Reply-To: " + SMTP_REPLY_TO_EMAIL]
-        head += ["Date: " + datetime.datetime.now(pytz.utc).strftime("%a, %e %b %Y %T %z")]
+        # Default encoding mode set to Quoted Printable. Acts globally!
+        #Charset.add_charset('utf-8', Charset.QP, Charset.QP, 'utf-8')
+
+        subject = mail_template['subject'].format(**kwargs)
+        message = mail_template['message'].format(**kwargs)
+
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = str(Header(subject, 'utf-8'))
+        msg['From'] = str(Header(SMTP_FROM, 'utf-8'))
+        msg['To'] = str(Header(self.email, 'utf-8'))
+        msg['Message-ID'] = msgid
+        msg['Reply-To'] = SMTP_REPLY_TO_EMAIL
+        msg['Date'] = datetime.datetime.now(pytz.utc).strftime("%a, %e %b %Y %T %z")
 
         if in_reply_to:
-            head += ["In-Reply-To: " + in_reply_to]
-            head += ["References: " + in_reply_to]
+            msg['In-Reply-To'] = in_reply_to
+            msg['References'] = in_reply_to
 
-        kwargs.update(HEAD="\n".join(head))
-        mail = mail_template.format(**kwargs)
+        # add message
+        charset = Charset('utf-8')
+        # QP = quoted printable; this is better readable instead of base64, when
+        # the mail is read in plaintext!
+        charset.body_encoding = QP
+        message_part = MIMEText(message.encode('utf-8'), 'plain', charset)
+        msg.attach(message_part)
 
         if DEBUG:
             with open("/tmp/keepitup_mails.log", "a") as f:
@@ -90,7 +106,7 @@ class User(Base):
                     context = ssl.create_default_context()
                     server.starttls(context=context)
 
-                server.sendmail(SMTP_FROM, self.email, mail)
+                server.sendmail(SMTP_FROM, self.email, msg.as_string())
 
         return msgid
 

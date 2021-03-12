@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 
-CONFIRM = """{HEAD}
-Subject: Confirm your email for KeepItUp! :)
-
-Hi there,
+CONFIRM = dict(
+    subject="Confirm your email for KeepItUp! :)",
+    message="""Hi there,
 
 you need to confirm your email with this token:
 
@@ -18,12 +17,11 @@ please kindly ignore this mail.
 
 Kind regards,
 lemoer
-"""
+""")
 
-ALARM = """{HEAD}
-Subject: [KeepItUp] alarm: {node.name} is unreachable
-
-Hi there,
+ALARM = dict(
+    subject="[KeepItUp] alarm: {node.name} is unreachable",
+    message="""Hi there,
 
 the node {node.name} is unreachable.
 
@@ -31,12 +29,11 @@ Link to node: {url}
 
 Kind regards,
 lemoer
-"""
+""")
 
-RESOLVED = """{HEAD}
-Subject: [KeepItUp] resolved: {node.name} is reachable again
-
-Hi there,
+RESOLVED = dict(
+    subject="[KeepItUp] resolved: {node.name} is reachable again",
+    message="""Hi there,
 
 the node {node.name} is now reachable again.
 
@@ -45,3 +42,4 @@ Link to node: {url}
 Kind regards,
 lemoer
 """
+)
