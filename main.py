@@ -70,9 +70,6 @@ class User(Base):
     def send_mail(self, mail_template, in_reply_to = None, **kwargs):
         msgid = make_msgid()
 
-        # Default encoding mode set to Quoted Printable. Acts globally!
-        #Charset.add_charset('utf-8', Charset.QP, Charset.QP, 'utf-8')
-
         subject = mail_template['subject'].format(**kwargs)
         message = mail_template['message'].format(**kwargs)
 
