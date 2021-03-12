@@ -95,7 +95,7 @@ class User(Base):
 
         if DEBUG:
             with open("/tmp/keepitup_mails.log", "a") as f:
-                f.write(mail + "\n")
+                f.write(msg.as_string() + "\n")
         else:
             with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
                 server.ehlo()
