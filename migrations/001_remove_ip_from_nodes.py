@@ -28,7 +28,20 @@ if DBVersion.get(db) > 0:
 db.execute('ALTER TABLE `nodes` RENAME TO `nodes_old`')
 
 # recreate new table "nodes"
-init_db()
+db.execute("""
+CREATE TABLE nodes (
+	id INTEGER NOT NULL,
+	name VARCHAR(64),
+	nodeid VARCHAR(32),
+	state VARCHAR(16),
+	is_waiting BOOLEAN,
+	user_id INTEGER,
+	PRIMARY KEY (id),
+	UNIQUE (nodeid),
+	CHECK (is_waiting IN (0, 1)),
+	FOREIGN KEY(user_id) REFERENCES users (id)
+);
+""")
 
 # migrate data
 db.execute('INSERT INTO nodes SELECT id,name,nodeid,state,is_waiting,user_id FROM nodes_old;')
