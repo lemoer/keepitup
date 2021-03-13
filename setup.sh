@@ -25,7 +25,7 @@ if [ "$1" == '--systemwide' ]; then
 		echo User ${SYSTEM_USER} already created.
 	fi
 
-	for f in $DIR/dist/*.{service,target,timer}; do
+	for f in $DIR/dist/*.{service,target}; do
 		sudo cp "$f" "$SYSTEMD"
 		sudo sed -i "s\\%DIR%\\$DIR\\g" "$SYSTEMD"/$(basename "$f")
 		sudo sed -i "s\\%SYSTEM_USER%\\${SYSTEM_USER}\\g" "$SYSTEMD"/$(basename "$f")
