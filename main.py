@@ -26,6 +26,7 @@ from config import *
 import mail_templates
 
 SQLITE_URI = 'sqlite:///foo.db'
+NODE_OFFLINE_TIMEOUT = datetime.timedelta(hours=1)
 
 Base = declarative_base()
 
@@ -257,6 +258,8 @@ class Node(Base):
     user_id = Column(Integer, ForeignKey('users.id'))
     subscriptions = relationship("Subscription", back_populates="node")
     alarms = relationship("Alarm", back_populates="node", order_by="desc(Alarm.id)")
+    last_seen_at = Column(DateTime)
+    last_updated_at = Column(DateTime)
 
     def __init__(self, name, nodeid):
         self.name = name
@@ -267,8 +270,10 @@ class Node(Base):
     def _switch_state(self, session):
         old_state = self.state
 
-        # TODO: adjust here
-        new_state = 'problem'
+        if datetime.datetime.now() - self.last_seen_at > NODE_OFFLINE_TIMEOUT:
+            new_state = 'problem'
+        else:
+            new_state = 'ok'
 
         if new_state != old_state:
             self.state = new_state
@@ -280,8 +285,10 @@ class Node(Base):
     def _update_waiting(self, session):
         """ This function calculates and updates the waiting status."""
 
-        # TODO: implement me again
-        self.is_waiting = False
+        self.is_waiting = ( \
+            self.last_updated_at is None \
+            or datetime.datetime.now() - self.last_updated_at > datetime.timedelta(minutes=5) \
+        )
         session.add(self)
         session.commit()
 
@@ -300,13 +307,15 @@ class Node(Base):
 
         if old_state == 'ok' and new_state == 'problem':
             alarm = Alarm(node=self)
+            alarm.alarm_at = self.last_seen_at
 
         if old_state == 'new' and new_state == 'problem':
             alarm = Alarm(node=self)
+            alarm.alarm_at = datetime.datetime.now()
 
         if old_state == 'problem' and new_state == 'ok':
             alarm = self.latest_alarm(session)
-            alarm.resolved_at = func.now()
+            alarm.resolved_at = self.last_seen_at
 
         if alarm:
             session.add(alarm)
