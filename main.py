@@ -27,6 +27,7 @@ import mail_templates
 
 SQLITE_URI = 'sqlite:///foo.db'
 NODE_OFFLINE_TIMEOUT = datetime.timedelta(hours=1)
+DB_VERSION = 2
 
 Base = declarative_base()
 
@@ -406,6 +407,10 @@ def init_db():
 
     for cls in classes:
         cls.metadata.create_all(engine)
+
+    db = get_session()
+    DBVersion.set(db, DB_VERSION)
+    db.commit()
 
 
 if __name__ == '__main__':
