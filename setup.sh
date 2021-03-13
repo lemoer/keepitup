@@ -31,9 +31,17 @@ if [ "$1" == '--systemwide' ]; then
 		sudo sed -i "s\\%SYSTEM_USER%\\${SYSTEM_USER}\\g" "$SYSTEMD"/$(basename "$f")
 	done
 
+	# remove legacy stuff
+	if [ -f "$SYSTEMD/keepitup-update-nodes.timer" ]; then
+		echo "Removing legacy systemd unit keepitup-update-nodes.service."
+		sudo rm "$SYSTEMD/keepitup-update-nodes.timer"
+		sudo rm "$SYSTEMD/keepitup-update-nodes.service"
+		sudo systemctl disable keepitup-update-nodes.timer
+		sudo systemctl stop keepitup-update-nodes.timer
+	fi
+
 	sudo systemctl enable keepitup-worker.service
 	sudo systemctl enable keepitup-webserver.service
-	sudo systemctl enable keepitup-update-nodes.timer
 	sudo systemctl enable keepitup.target
 
 	sudo systemctl daemon-reload
