@@ -14,7 +14,15 @@ try:
     while True:
         nodeset.update_from_db(session)
 
-        # TODO: Add updating last_seen attribute from nodes.json here...
+        # Update last_seen_at from nodes.json...
+        nodes_json_cache = NodesJSONCache()
+        nodes_json_cache.update()
+
+        for node in nodeset.nodes:
+            nodes_json_cache.update_db_node(node)
+            session.add(node)
+
+        session.commit()
 
         for n in nodeset.nodes:
             alarm = n.check(session)
@@ -25,6 +33,8 @@ try:
                 print("node " + n.name + ": resolved")
             else:
                 print("node " + n.name + ": alarm")
+
+        time.sleep(60)
 
 
 except KeyboardInterrupt:

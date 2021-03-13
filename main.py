@@ -125,7 +125,8 @@ class NodesJSONCache:
 
         nodes = []
         try:
-            for node in res.json()['nodes']:
+            json = res.json()
+            for node in json['nodes']:
                 nodeinfo = node['nodeinfo']
 
                 if nodeset:
@@ -135,6 +136,9 @@ class NodesJSONCache:
                         continue
 
                 n = Node(nodeinfo['hostname'], nodeinfo['node_id'])
+                if 'lastseen' in node:
+                    n.last_seen_at = parse_time(node['lastseen'])
+                n.last_updated_at = parse_time(json['timestamp'])
                 nodes += [n]
         except KeyError:
             print("warning: NodesJSONCache detected wrong format for " + NODES_JSON_URL + "!", file=sys.stderr)
@@ -148,6 +152,10 @@ class NodesJSONCache:
                 return node
 
     def update_db_node(self, node):
+        """ Update a node from the nodes.json. This makes only sense, if
+        nodes_json_cache.update() has been called with nodeset=None.
+        Otherwise the nodes_json_cache contains the nodes from nodeset. """
+
         other = self.find_by_nodeid(node.nodeid)
 
         # node does not exist in nodes.json anymore, so we can not
@@ -156,6 +164,8 @@ class NodesJSONCache:
             return
 
         node.name = other.name
+        node.last_seen_at = other.last_seen_at
+        node.last_updated_at = other.last_updated_at
 
 
 class Subscription(Base):
@@ -287,6 +297,7 @@ class Node(Base):
 
         self.is_waiting = ( \
             self.last_updated_at is None \
+            or self.last_seen_at is None \
             or datetime.datetime.now() - self.last_updated_at > datetime.timedelta(minutes=5) \
         )
         session.add(self)
@@ -354,6 +365,7 @@ class Node(Base):
         else:
             return self.state
 
+
 class DBVersion(Base):
     __tablename__ = 'db_version'
 
@@ -377,6 +389,7 @@ class DBVersion(Base):
             version_obj = DBVersion()
         version_obj.version = new_version
         session.add(version_obj)
+
 
 def get_session():
     engine = create_engine(SQLITE_URI)
