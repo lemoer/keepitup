@@ -27,7 +27,7 @@ import mail_templates
 
 SQLITE_URI = 'sqlite:///foo.db'
 NODE_OFFLINE_TIMEOUT = datetime.timedelta(hours=1)
-DB_VERSION = 2
+DB_VERSION = 3
 
 Base = declarative_base()
 
@@ -265,7 +265,10 @@ class Node(Base):
     name = Column(String(64))
     nodeid = Column(String(32), unique=True)
     state = Column(String(16))
-    is_waiting = Column(Boolean, default=True)
+    # The state 'unknown' is stored in the separate column is_state_unknown, so
+    # we can recover the old state as soon as is_state_unknown becomes False
+    # again.
+    is_state_unknown = Column(Boolean, default=True)
     user_id = Column(Integer, ForeignKey('users.id'))
     subscriptions = relationship("Subscription", back_populates="node")
     alarms = relationship("Alarm", back_populates="node", order_by="desc(Alarm.id)")
@@ -276,7 +279,7 @@ class Node(Base):
         self.name = name
         self.nodeid = nodeid
         self.state = "new"
-        self.is_waiting = True
+        self.is_state_unknown = True
 
     def _switch_state(self, session):
         old_state = self.state
@@ -296,7 +299,7 @@ class Node(Base):
     def _update_waiting(self, session):
         """ This function calculates and updates the waiting status."""
 
-        self.is_waiting = ( \
+        self.is_state_unknown = ( \
             self.last_updated_at is None \
             or self.last_seen_at is None \
             or datetime.datetime.now() - self.last_updated_at > datetime.timedelta(minutes=5) \
@@ -310,7 +313,7 @@ class Node(Base):
         it only returns an Alarm object if a state change happened. """
 
         self._update_waiting(session)
-        if self.is_waiting:
+        if self.is_state_unknown:
             # switching state is only allowed when node is not waiting
             return None
 
@@ -361,8 +364,8 @@ class Node(Base):
 
     @property
     def constitution(self):
-        if self.is_waiting:
-            return 'waiting'
+        if self.is_state_unknown:
+            return 'unknown'
         else:
             return self.state
 
