@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2021-02-28 17:32+0100\n"
+"POT-Creation-Date: 2021-03-04 21:40+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,12 +17,166 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.9.0\n"
 
+#: webserver.py:105
+msgid "Error: The entered mail does not contain an @."
+msgstr ""
+
+#: webserver.py:112 webserver.py:115
+msgid "Error: Email invalid. The domain "
+msgstr ""
+
+#: webserver.py:112 webserver.py:115
+msgid " does not have an MX record."
+msgstr ""
+
+#: webserver.py:121
+msgid "User already registered. Resending login token."
+msgstr ""
+
+#: webserver.py:129
+msgid "Confirmation mail sent."
+msgstr ""
+
+#: webserver.py:172
+msgid ""
+"Error: Email was not given in request. Please use the link from your "
+"confirmation mail."
+msgstr ""
+
+#: webserver.py:176
+msgid ""
+"Error: Token was not given in request. Please use the link from your "
+"confirmation mail."
+msgstr ""
+
+#: webserver.py:182
+msgid "Error: Email not found."
+msgstr ""
+
+#: webserver.py:187
+msgid "Error: The supplied token is invalid."
+msgstr ""
+
+#: webserver.py:192
+msgid "Success: Email confirmed. You are now logged in."
+msgstr ""
+
+#: webserver.py:200
+msgid "Logged out."
+msgstr ""
+
+#: webserver.py:216
+msgid "Error: You need to be logged in to subscribe."
+msgstr ""
+
+#: webserver.py:224
+msgid "Error: You are already subscribed to "
+msgstr ""
+
+#: webserver.py:224
+msgid "!"
+msgstr ""
+
+#: webserver.py:235
+msgid "Subscribed to node "
+msgstr ""
+
+#: webserver.py:262
+msgid "Error: Node with nodeid "
+msgstr ""
+
+#: webserver.py:262 webserver.py:287
+msgid " not found!"
+msgstr ""
+
+#: webserver.py:273
+msgid "Error: You need to be logged in to unsubscribe."
+msgstr ""
+
+#: webserver.py:277
+msgid "Error: Unsubscribe failed. No nodeid was given."
+msgstr ""
+
+#: webserver.py:287
+msgid "Error: Unsubscribe failed. Node with nodeid "
+msgstr ""
+
+#: webserver.py:293
+msgid "Error: Unsubscribe failed. You were not subscribed to "
+msgstr ""
+
+#: webserver.py:299
+msgid "Sucessfully unsubscribed from "
+msgstr ""
+
+#: webserver.py:304
+msgid "Node "
+msgstr ""
+
+#: webserver.py:304
+msgid " was removed, because nobody subscribes to it anymore."
+msgstr ""
+
+#: templates/404.html:4
+msgid "404 - Not Found"
+msgstr ""
+
+#: templates/404.html:6
+msgid ""
+"The requested URL was not found on the server. If you entered the URL "
+"manually please check your spelling and try again."
+msgstr ""
+
+#: templates/layout.html:15
+msgid "Logged in as"
+msgstr ""
+
+#: templates/layout.html:39
+msgid "Navigation:"
+msgstr ""
+
+#: templates/layout.html:42
+msgid "Subscribe to nodes"
+msgstr ""
+
+#: templates/layout.html:43
+msgid "You logged in as"
+msgstr ""
+
+#: templates/layout.html:43
+msgid "Logout"
+msgstr ""
+
+#: templates/layout.html:45 templates/register.html:13
+msgid "Sign up"
+msgstr ""
+
 #: templates/layout.html:49
 msgid "Your Subscriptions"
 msgstr ""
 
+#: templates/layout.html:55
+msgid ", silenced"
+msgstr ""
+
 #: templates/layout.html:60
 msgid "All Monitored Nodes"
+msgstr ""
+
+#: templates/layout.html:66 templates/subscribe.html:10
+msgid "subscribed"
+msgstr ""
+
+#: templates/login.html:4
+msgid "Login"
+msgstr ""
+
+#: templates/node.html:6
+msgid "Current IP:"
+msgstr ""
+
+#: templates/node.html:8
+msgid "Links:"
 msgstr ""
 
 #: templates/node.html:11
@@ -49,7 +203,7 @@ msgstr ""
 msgid "Actions"
 msgstr ""
 
-#: templates/node.html:23
+#: templates/node.html:23 templates/subscribe.html:10
 msgid "subscribe"
 msgstr ""
 
@@ -75,5 +229,49 @@ msgstr ""
 
 #: templates/node.html:37
 msgid "Duration"
+msgstr ""
+
+#: templates/node.html:51
+msgid "Latest Pings:"
+msgstr ""
+
+#: templates/node.html:55
+msgid "Time"
+msgstr ""
+
+#: templates/node.html:56
+msgid "RTT"
+msgstr ""
+
+#: templates/node.html:64
+msgid "lost"
+msgstr ""
+
+#: templates/register.html:4
+msgid "Register"
+msgstr ""
+
+#: templates/register.html:9
+msgid "Email address"
+msgstr ""
+
+#: templates/register.html:14
+msgid "Resend login token"
+msgstr ""
+
+#: templates/subscribe.html:4
+msgid "Subscribe"
+msgstr ""
+
+#: templates/subscribe.html:10
+msgid "goto"
+msgstr ""
+
+#: templates/subscribe.html:10
+msgid "subscribe & goto"
+msgstr ""
+
+#: templates/subscribe.html:10
+msgid "no address in nodes.json"
 msgstr ""
 

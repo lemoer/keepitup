@@ -3,9 +3,9 @@
 {% block content %}
 <h1>{{ node.name }}</h1>
 
-Current IP: <a href="http://[{{ node.ip }}]/">{{ node.ip }}</a><br>
+{{ _('Current IP:') }} <a href="http://[{{ node.ip }}]/">{{ node.ip }}</a><br>
 {% if NODE_LINKS|length > 0 %}
-Links: {% for descr, href in NODE_LINKS.items() %}<a href="{{href.format(node=node)}}">{{descr}}</a>{{ ", " if not loop.last }}{% endfor %}
+{{ _('Links:') }} {% for descr, href in NODE_LINKS.items() %}<a href="{{href.format(node=node)}}">{{descr}}</a>{{ ", " if not loop.last }}{% endfor %}
 {% endif %}
 <br>
 {{ _('Current constitution') }}: {{ node | show_constitution | safe }}<br>
