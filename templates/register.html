@@ -1,17 +1,17 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<h1>Register</h1>
+<h1>{{ _('Register') }}</h1>
 <form method="post">
 <div class="row align-items-start">
 	<div class="col-6">
 		<div class="mb-3">
-			<label for="exampleFormControlInput1" class="form-label">Email address</label>
+			<label for="exampleFormControlInput1" class="form-label">{{ _('Email address') }}</label>
 			<input type="email" class="form-control" name="email" placeholder="name@example.com">
 		</div>
 		<div class="col-12">
-			<button type="submit" class="btn btn-primary">Sign up</button>
-			<button type="submit" class="btn btn-secondary">Resend login token</button>
+			<button type="submit" class="btn btn-primary">{{ _('Sign up') }}</button>
+			<button type="submit" class="btn btn-secondary">{{ _('Resend login token') }}</button>
 		</div>
 
 	</div>

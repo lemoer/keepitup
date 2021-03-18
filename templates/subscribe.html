@@ -1,13 +1,13 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<h1>Subscribe</h1>
+<h1>{{ _('Subscribe') }}</h1>
 
 <ul>
 {% for node in nodes_json_cache.nodes|sort(attribute='name') %}
 	{% set show_subscribe = node not in user.subscribed_nodes %}
 	{% set show_goto = node.is_in_db %}
-	<li>{{ node.name }} ({% if show_goto %}<a href="{{ url_for('node', nodeid=node.nodeid) }}">goto</a>, {% endif %}{% if show_subscribe %}<a href="{{ url_for('subscribe', nodeid=node.nodeid) }}">subscribe</a>, <a href="{{ url_for('subscribe', nodeid=node.nodeid,goto='yes') }}">subscribe & goto</a>{% else %}no address in nodes.json{% endif %})</li>
+	<li>{{ node.name }} ({% if show_goto %}<a href="{{ url_for('node', nodeid=node.nodeid) }}">{{ _('goto') }}</a>, {% endif %}{% if show_subscribe %}<a href="{{ url_for('subscribe', nodeid=node.nodeid) }}">{{ _('subscribe') }}</a>, <a href="{{ url_for('subscribe', nodeid=node.nodeid,goto='yes') }}">{{ _('subscribe & goto') }}</a>{% else %}{{ _('no address in nodes.json') }}{% endif %})</li>
 {% endfor %}
 </ul>
 

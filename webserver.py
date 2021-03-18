@@ -96,23 +96,23 @@ def register():
     if request.method == 'POST':
         email = request.form.get('email')
         if '@' not in email:
-            flash('Error: The entered mail does not contain an @.', 'danger')
+            flash(gettext('Error: The entered mail does not contain an @.'), 'danger')
             return res(400)
 
         domain = email.rsplit('@', 1)[-1]
         try:
             dns.resolver.query(domain, 'MX')
         except dns.resolver.Timeout:
-            flash('Error: Email invalid. The domain ' + domain + ' does not have an MX record.', 'danger')
+            flash(gettext('Error: Email invalid. The domain ') + domain + gettext(' does not have an MX record.'), 'danger')
             return res(400)
         except dns.resolver.NXDOMAIN:
-            flash('Error: Email invalid. The domain ' + domain + ' does not have an MX record.', 'danger')
+            flash(gettext('Error: Email invalid. The domain ') + domain + gettext(' does not have an MX record.'), 'danger')
             return res(400)
 
         user = User.find_by_email(db, email)
 
         if user:
-            flash('User already registered. Resending login token.', 'warning')
+            flash(gettext('User already registered. Resending login token.'), 'warning')
             user.send_confirm_mail(url_for('login', _external=True))
             return res(200)
 
@@ -120,7 +120,7 @@ def register():
         db.add(user)
         db.commit()
         user.send_confirm_mail(url_for('login', _external=True))
-        flash('Confirmation mail sent.', 'info')
+        flash(gettext('Confirmation mail sent.'), 'info')
         return res(200)
 
     return res(200)
@@ -163,27 +163,27 @@ def login():
         return render_template("login.html"), code
 
     if 'email' not in request.args:
-        flash('Error: Email was not given in request. Please use the link from your confirmation mail.', 'danger')
+        flash(gettext('Error: Email was not given in request. Please use the link from your confirmation mail.'), 'danger')
         return res(400)
 
     if 'token' not in request.args:
-        flash('Error: Token was not given in request. Please use the link from your confirmation mail.', 'danger')
+        flash(gettext('Error: Token was not given in request. Please use the link from your confirmation mail.'), 'danger')
         return res(400)
 
     user = User.find_by_email(db, request.args['email'])
 
     if not user:
-        flash('Error: Email not found.', 'danger')
+        flash(gettext('Error: Email not found.'), 'danger')
         return res(400)
 
 
     if not user.try_confirm(db, request.args['token']):
-        flash('Error: The supplied token is invalid.', 'danger')
+        flash(gettext('Error: The supplied token is invalid.'), 'danger')
         return res(400)
 
     session['email'] = user.email
 
-    flash('Success: Email confirmed. You are now logged in.', 'success')
+    flash(gettext('Success: Email confirmed. You are now logged in.'), 'success')
     return redirect('/')
 
 @app.route('/logout')
@@ -191,7 +191,7 @@ def logout():
     if session['email'] is not None:
         session['email'] = None
 
-        flash('Logged out.', 'info')
+        flash(gettext('Logged out.'), 'info')
 
     return redirect_to_last_page()
 
@@ -207,7 +207,7 @@ def redirect_to_last_page():
 def subscribe():
     user = get_user()
     if not user:
-        flash('Error: You need to be logged in to subscribe.', 'danger')
+        flash(gettext('Error: You need to be logged in to subscribe.'), 'danger')
         return redirect('/')
 
     def res(code):
@@ -215,7 +215,7 @@ def subscribe():
 
     def try_subscribe(node):
         if user in node.subscribed_users:
-            flash('Error: You are already subscribed to ' + node.name + '!', 'danger')
+            flash(gettext('Error: You are already subscribed to ') + node.name + gettext('!'), 'danger')
             return redirect_to_last_page()
 
         s = Subscription()
@@ -226,7 +226,7 @@ def subscribe():
         db.add(node) # node might not be in db yet
         db.commit()
 
-        flash('Subscribed to node ' + node.name + '.', 'success')
+        flash(gettext('Subscribed to node ') + node.name + '.', 'success')
         if request.args.get('goto') == 'yes':
             return redirect(url_for('node', nodeid=node.nodeid))
         else:
@@ -253,7 +253,7 @@ def subscribe():
         node = nodes_json_cache.find_by_nodeid(request.args['nodeid'])
 
         if not node:
-            flash('Error: Node with nodeid ' + request.args['nodeid'] + " not found!", 'danger')
+            flash(gettext('Error: Node with nodeid ') + request.args['nodeid'] + gettext(" not found!"), 'danger')
             return res(400)
 
         return try_subscribe(node)
@@ -264,11 +264,11 @@ def subscribe():
 def unsubscribe():
     user = get_user()
     if not user:
-        flash('Error: You need to be logged in to unsubscribe.', 'danger')
+        flash(gettext('Error: You need to be logged in to unsubscribe.'), 'danger')
         return redirect('/')
 
     if 'nodeid' not in request.args:
-        flash('Error: Unsubscribe failed. No nodeid was given.', 'danger')
+        flash(gettext('Error: Unsubscribe failed. No nodeid was given.'), 'danger')
         return redirect_to_last_page()
 
     db = get_db()
@@ -278,24 +278,24 @@ def unsubscribe():
     node = nodeset.find_by_nodeid(request.args['nodeid'])
 
     if not node:
-        flash('Error: Unsubscribe failed. Node with nodeid ' + request.args['nodeid'] + " not found!", 'danger')
+        flash(gettext('Error: Unsubscribe failed. Node with nodeid ') + request.args['nodeid'] + gettext(" not found!"), 'danger')
         return redirect_to_last_page()
 
     subscription = node.get_subscription_by_user(db, user)
 
     if not subscription:
-        flash('Error: Unsubscribe failed. You were not subscribed to ' + node.name + "!", 'danger')
+        flash(gettext('Error: Unsubscribe failed. You were not subscribed to ') + node.name + "!", 'danger')
         return redirect_to_last_page()
 
     db.delete(subscription)
     db.commit()
 
-    flash('Sucessfully unsubscribed from ' + node.name + "!", 'info')
+    flash(gettext('Sucessfully unsubscribed from ') + node.name + "!", 'info')
 
     if len(node.subscriptions) == 0:
         db.delete(node)
         db.commit()
-        flash('Node ' + node.name + ' was removed, because nobody subscribes to it anymore.', 'info')
+        flash(gettext('Node ') + node.name + gettext(' was removed, because nobody subscribes to it anymore.'), 'info')
 
         return redirect('/')
 

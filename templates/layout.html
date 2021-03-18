@@ -12,7 +12,7 @@
 					<div class="container-fluid">
 						<a class="navbar-brand" href="/">KeepItUp</a>
 						{% if user %}
-						<span style="color: white;">Logged in as {{ user.email }}</span>
+						<span style="color: white;">{{ _('Logged in as') }} {{ user.email }}</span>
 						{% endif %}
 						<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
 							<span class="navbar-toggler-icon"></span>
@@ -36,13 +36,13 @@
 			<div class="row align-items-start">
 				<div class="col-4 bg-light">
 					<br>
-					<h4>Navigation:</h4>
+					<h4>{{ _('Navigation:') }}</h4>
 					<ul>
 						{% if user %}
-							<li><a href="{{ url_for('subscribe') }}">Subscribe to nodes</a></li>
-							<li>You logged in as {{ user.email }}, <a href="{{ url_for('logout') }}">Logout</a></li>
+							<li><a href="{{ url_for('subscribe') }}">{{ _('Subscribe to nodes') }}</a></li>
+							<li>{{ _('You logged in as') }} {{ user.email }}, <a href="{{ url_for('logout') }}">{{ _('Logout') }}</a></li>
 						{% else%}
-							<li><a href="{{ url_for('register') }}">Sign up</a></li>
+							<li><a href="{{ url_for('register') }}">{{ _('Sign up') }}</a></li>
 						{% endif %}
 					</ul>
 					{% if user %}
@@ -52,7 +52,7 @@
 						{% set node = subscription.node %}
 						<li>
 							<a href="{{ url_for('node', nodeid=node.nodeid) }}">
-								{{ node.name }}</a> ({{ node | show_constitution | safe}}{% if not subscription.send_notifications %}, silenced{% endif %})
+								{{ node.name }}</a> ({{ node | show_constitution | safe}}{% if not subscription.send_notifications %}{{ _(', silenced') }}{% endif %})
 						</li>
 					{% endfor %}
 					</ul>
@@ -61,8 +61,10 @@
 					<ul>
 					{% for node in node_list.nodes|sort(attribute='name') %}
 						<li>
-							<a href="{{ url_for('node', nodeid=node.nodeid) }}">
-								{{ node.name }}</a>{% if user and node in user.subscribed_nodes %} (subscribed){% endif %}
+							<a href="{{ url_for('node', nodeid=node.nodeid) }}">{{ node.name }}</a>
+								{% if user and node in user.subscribed_nodes %}
+									({{ _('subscribed') }})
+								{% endif %}
 						</li>
 					{% endfor %}
 					</ul>
