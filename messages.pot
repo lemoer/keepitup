@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2021-03-04 21:40+0100\n"
+"POT-Creation-Date: 2021-03-07 20:29+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -22,11 +22,7 @@ msgid "Error: The entered mail does not contain an @."
 msgstr ""
 
 #: webserver.py:112 webserver.py:115
-msgid "Error: Email invalid. The domain "
-msgstr ""
-
-#: webserver.py:112 webserver.py:115
-msgid " does not have an MX record."
+msgid "Error: Email invalid. The domain %(domain) does not have an MX record."
 msgstr ""
 
 #: webserver.py:121
@@ -70,23 +66,15 @@ msgid "Error: You need to be logged in to subscribe."
 msgstr ""
 
 #: webserver.py:224
-msgid "Error: You are already subscribed to "
-msgstr ""
-
-#: webserver.py:224
-msgid "!"
+msgid "Error: You are already subscribed to %(node)!"
 msgstr ""
 
 #: webserver.py:235
-msgid "Subscribed to node "
+msgid "Subscribed to node %(node)."
 msgstr ""
 
 #: webserver.py:262
-msgid "Error: Node with nodeid "
-msgstr ""
-
-#: webserver.py:262 webserver.py:287
-msgid " not found!"
+msgid "Error: Node with nodeid %(nodeid) not found!"
 msgstr ""
 
 #: webserver.py:273
@@ -98,23 +86,19 @@ msgid "Error: Unsubscribe failed. No nodeid was given."
 msgstr ""
 
 #: webserver.py:287
-msgid "Error: Unsubscribe failed. Node with nodeid "
+msgid "Error: Unsubscribe failed. Node with nodeid %(nodeid) not found!"
 msgstr ""
 
 #: webserver.py:293
-msgid "Error: Unsubscribe failed. You were not subscribed to "
+msgid "Error: Unsubscribe failed. You were not subscribed to %(node)!"
 msgstr ""
 
 #: webserver.py:299
-msgid "Sucessfully unsubscribed from "
+msgid "Sucessfully unsubscribed from %(node)!"
 msgstr ""
 
 #: webserver.py:304
-msgid "Node "
-msgstr ""
-
-#: webserver.py:304
-msgid " was removed, because nobody subscribes to it anymore."
+msgid "Node %(node) was removed, because nobody subscribes to it anymore."
 msgstr ""
 
 #: templates/404.html:4
