@@ -15,6 +15,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.header import Header
 from email.charset import Charset, QP
+from flask_babel import gettext
 
 from sqlalchemy import create_engine, func, event
 from sqlalchemy.ext.declarative import declarative_base
@@ -23,7 +24,6 @@ from sqlalchemy.orm import sessionmaker,relationship,column_property
 from sqlalchemy.sql import case
 
 from config import *
-import mail_templates
 
 SQLITE_URI = 'sqlite:///foo.db'
 NODE_OFFLINE_TIMEOUT = datetime.timedelta(hours=1)
@@ -61,9 +61,15 @@ class User(Base):
 
         return tokens_match
 
+    def get_mail_template(self, name):
+        subject_template = f"mail:{name}:subject"
+        message_template = f"mail:{name}:message"
+        return {"subject": gettext(subject_template),
+                "message": gettext(message_template)}
+
     def send_confirm_mail(self, url):
         url = url + "?email=" + self.email + "&token=" + self.email_token
-        mail_template = mail_templates.CONFIRM
+        mail_template = self.get_mail_template("confirm")
 
         self.send_mail(mail_template, url=url)
 
@@ -246,12 +252,10 @@ class Alarm(Base):
             user = subscription.user
 
             if self.is_resolved:
-                mail_template = mail_templates.RESOLVED
-
+                mail_template = self.get_mail_template("resolved")
                 user.send_mail(mail_template, in_reply_to=self.alarm_mail_msgid, node=node, url=url)
             else:
-                mail_template = mail_templates.ALARM
-
+                mail_template = self.get_mail_template("alarm")
                 self.alarm_mail_msgid = user.send_mail(mail_template, node=node, url=url)
 
                 session.add(self)

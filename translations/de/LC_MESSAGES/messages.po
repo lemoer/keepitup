@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2021-03-07 20:29+0100\n"
+"POT-Creation-Date: 2021-03-19 00:27+0100\n"
 "PO-Revision-Date: 2021-02-28 16:40+0100\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: de\n"
@@ -18,25 +18,80 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.9.0\n"
 
-#: webserver.py:105
+#: mail_templates.py:6
+msgid "mail:confirm:subject"
+msgstr "Mail-Addresse für KeepItUp bestätigen! :)"
+
+#: mail_templates.py:7
+msgid "mail:confirm:message"
+msgstr ""
+"Hallo,\n"
+"\n"
+"bitte bestätige deine E-Mail-Adresse, in dem du auf diesen Link klickst:\n"
+"\n"
+"{url}\n"
+"\n"
+"Bitte heb diese E-Mail auf. Mit dem Link kannst du dich immer wieder "
+"einloggen.\n"
+"Es gibt kein separates Passwort.\n"
+"\n"
+"Wenn du dich nicht bei KeepItUp registriert hast ignorier diese E-Mail "
+"bitte.\n"
+"\n"
+"Viele Grüße,\n"
+"lemoer"
+
+#: mail_templates.py:10
+msgid "mail:alarm:subject"
+msgstr "[KeepItUp] Alarm: {node.name} nicht erreichbar"
+
+#: mail_templates.py:11
+msgid "mail:alarm:message"
+msgstr ""
+"Hallo,\n"
+"\n"
+"der Router {node.name} ist nicht erreichbar.\n"
+"\n"
+"Link zum Router: {url}\n"
+"\n"
+"Viele Grüße,\n"
+"lemoer"
+
+#: mail_templates.py:14
+msgid "mail:resolved:subject"
+msgstr "[KeepItUp] Entwarnung: {node.name} ist wieder erreichbar"
+
+#: mail_templates.py:15
+msgid "mail:resolved:message"
+msgstr ""
+"Hallo,\n"
+"\n"
+"der Router {node.name} ist jetzt wieder erreichbar.\n"
+"\n"
+"Link zum Router: {url}\n"
+"\n"
+"Viele Grüße,\n"
+"lemoer"
+
+#: webserver.py:99
 msgid "Error: The entered mail does not contain an @."
 msgstr "Fehler: Die eingegebene Mail-Adresse enthält kein @."
 
-#: webserver.py:112 webserver.py:115
+#: webserver.py:106 webserver.py:109
 msgid "Error: Email invalid. The domain %(domain) does not have an MX record."
 msgstr ""
 "Fehler: Ungültige E-Mail-Adresse. Die Domain %(domain) hat keinen MX-"
 "Record."
 
-#: webserver.py:121
+#: webserver.py:115
 msgid "User already registered. Resending login token."
 msgstr "Du bist bereits registriert. Wir schicken dir einen Login-Link."
 
-#: webserver.py:129
+#: webserver.py:123
 msgid "Confirmation mail sent."
 msgstr "Bestätigungs-Mail gesendet."
 
-#: webserver.py:172
+#: webserver.py:166
 msgid ""
 "Error: Email was not given in request. Please use the link from your "
 "confirmation mail."
@@ -44,7 +99,7 @@ msgstr ""
 "Fehler: Mail-Adresse nicht angegeben. Bitte nutze den Link aus der "
 "Bestätigungs-Mail."
 
-#: webserver.py:176
+#: webserver.py:170
 msgid ""
 "Error: Token was not given in request. Please use the link from your "
 "confirmation mail."
@@ -52,59 +107,61 @@ msgstr ""
 "Fehler: Token wurde nicht übermittelt. Bitte nutze den Link aus der "
 "Bestätigungs-Mail."
 
-#: webserver.py:182
+#: webserver.py:176
 msgid "Error: Email not found."
 msgstr "Fehler: Mail-Adresse nicht gefunden."
 
-#: webserver.py:187
+#: webserver.py:181
 msgid "Error: The supplied token is invalid."
 msgstr "Fehler: Der angegebene Token ist ungültig."
 
-#: webserver.py:192
+#: webserver.py:186
 msgid "Success: Email confirmed. You are now logged in."
 msgstr "Mail-Adresse bestätigt. Du bist eingeloggt."
 
-#: webserver.py:200
+#: webserver.py:194
 msgid "Logged out."
 msgstr "Ausgeloggt."
 
-#: webserver.py:216
+#: webserver.py:210
 msgid "Error: You need to be logged in to subscribe."
 msgstr "Fehler: Du musst eingeloggt sein, um Router-Infos zu abonnieren."
 
-#: webserver.py:224
+#: webserver.py:218
 msgid "Error: You are already subscribed to %(node)!"
 msgstr "Fehler: Du hast %(node) bereits abonniert!"
 
-#: webserver.py:235
+#: webserver.py:229
 msgid "Subscribed to node %(node)."
 msgstr "Knoten %(node) abonniert."
 
-#: webserver.py:262
+#: webserver.py:256
 msgid "Error: Node with nodeid %(nodeid) not found!"
 msgstr "Fehler: Knoten %(nodeid) wurde nicht gefunden!"
 
-#: webserver.py:273
+#: webserver.py:267
 msgid "Error: You need to be logged in to unsubscribe."
 msgstr "Fehler: Du musst eingeloggt sein um deine Abonnements zu verwalten."
 
-#: webserver.py:277
+#: webserver.py:271
 msgid "Error: Unsubscribe failed. No nodeid was given."
 msgstr "Fehler: Abbestellung fehlgeschlagen. Es wurde keine Knoten-ID angegeben."
 
-#: webserver.py:287
+#: webserver.py:281
 msgid "Error: Unsubscribe failed. Node with nodeid %(nodeid) not found!"
 msgstr "Fehler: Abbestellung fehlgeschlagen. Der Knoten mit der ID "
 
-#: webserver.py:293
+#: webserver.py:287
 msgid "Error: Unsubscribe failed. You were not subscribed to %(node)!"
-msgstr "Fehler: Abbestellung fehlgeschlagen. Du hattest Knoten %(node) nicht abonniert."
+msgstr ""
+"Fehler: Abbestellung fehlgeschlagen. Du hattest Knoten %(node) nicht "
+"abonniert."
 
-#: webserver.py:299
+#: webserver.py:293
 msgid "Sucessfully unsubscribed from %(node)!"
 msgstr "Knoten %(node) erfolgreich abbestellt."
 
-#: webserver.py:304
+#: webserver.py:298
 msgid "Node %(node) was removed, because nobody subscribes to it anymore."
 msgstr "Knoten %(node) wurde entfernt, da ihn niemand mehr abonniert hat."
 
@@ -156,7 +213,7 @@ msgstr ", stumm geschaltet"
 msgid "All Monitored Nodes"
 msgstr "Alle gemonitorten Knoten"
 
-#: templates/layout.html:66 templates/subscribe.html:10
+#: templates/layout.html:66
 msgid "subscribed"
 msgstr "abonniert"
 
@@ -223,22 +280,6 @@ msgstr "Ende"
 #: templates/node.html:37
 msgid "Duration"
 msgstr "Dauer"
-
-#: templates/node.html:51
-msgid "Latest Pings:"
-msgstr "Letzte Pings:"
-
-#: templates/node.html:55
-msgid "Time"
-msgstr "Zeit"
-
-#: templates/node.html:56
-msgid "RTT"
-msgstr "Dauer"
-
-#: templates/node.html:64
-msgid "lost"
-msgstr "verloren"
 
 #: templates/register.html:4
 msgid "Register"

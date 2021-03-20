@@ -1,17 +1,18 @@
-# Translations template for PROJECT.
+# English translations for PROJECT.
 # Copyright (C) 2021 ORGANIZATION
 # This file is distributed under the same license as the PROJECT project.
 # FIRST AUTHOR <EMAIL@ADDRESS>, 2021.
 #
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2021-03-19 00:27+0100\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"POT-Creation-Date: 2021-03-19 00:25+0100\n"
+"PO-Revision-Date: 2021-02-28 16:40+0100\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: en\n"
+"Language-Team: en <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -19,27 +20,58 @@ msgstr ""
 
 #: mail_templates.py:6
 msgid "mail:confirm:subject"
-msgstr ""
+msgstr "Confirm your email for KeepItUp! :)"
 
 #: mail_templates.py:7
 msgid "mail:confirm:message"
 msgstr ""
+"Hi there,\n"
+"\n"
+"you need to confirm your email with this token:\n"
+"\n"
+"{url}\n"
+"\n"
+"Please keep this mail or token, as you can always\n"
+"log into your account with this token again. There\n"
+"is no separate password.\n"
+"\n"
+"If you have not registered yourself for keepitup,\n"
+"please kindly ignore this mail.\n"
+"\n"
+"Kind regards,\n"
+"lemoer"
 
 #: mail_templates.py:10
 msgid "mail:alarm:subject"
-msgstr ""
+msgstr "[KeepItUp] alarm: {node.name} is unreachable"
 
 #: mail_templates.py:11
 msgid "mail:alarm:message"
 msgstr ""
+"Hi there,\n"
+"\n"
+"the node {node.name} is unreachable.\n"
+"\n"
+"Link to node: {url}\n"
+"\n"
+"Kind regards,\n"
+"lemoer"
 
 #: mail_templates.py:14
 msgid "mail:resolved:subject"
-msgstr ""
+msgstr "[KeepItUp] resolved: {node.name} is reachable again"
 
 #: mail_templates.py:15
 msgid "mail:resolved:message"
 msgstr ""
+"Hi there,\n"
+"\n"
+"the node {node.name} is now reachable again.\n"
+"\n"
+"Link to node: {url}\n"
+"\n"
+"Kind regards,\n"
+"lemoer"
 
 #: webserver.py:99
 msgid "Error: The entered mail does not contain an @."
@@ -266,4 +298,3 @@ msgstr ""
 #: templates/subscribe.html:10
 msgid "no address in nodes.json"
 msgstr ""
-
