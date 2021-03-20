@@ -78,7 +78,7 @@ msgid "Error: The entered mail does not contain an @."
 msgstr ""
 
 #: webserver.py:106 webserver.py:109
-msgid "Error: Email invalid. The domain %(domain) does not have an MX record."
+msgid "Error: Email invalid. The domain %(domain)s does not have an MX record."
 msgstr ""
 
 #: webserver.py:115
@@ -122,15 +122,15 @@ msgid "Error: You need to be logged in to subscribe."
 msgstr ""
 
 #: webserver.py:218
-msgid "Error: You are already subscribed to %(node)!"
+msgid "Error: You are already subscribed to %(node)s!"
 msgstr ""
 
 #: webserver.py:229
-msgid "Subscribed to node %(node)."
+msgid "Subscribed to node %(node)s."
 msgstr ""
 
 #: webserver.py:256
-msgid "Error: Node with nodeid %(nodeid) not found!"
+msgid "Error: Node with nodeid %(nodeid)s not found!"
 msgstr ""
 
 #: webserver.py:267
@@ -142,19 +142,19 @@ msgid "Error: Unsubscribe failed. No nodeid was given."
 msgstr ""
 
 #: webserver.py:281
-msgid "Error: Unsubscribe failed. Node with nodeid %(nodeid) not found!"
+msgid "Error: Unsubscribe failed. Node with nodeid %(nodeid)s not found!"
 msgstr ""
 
 #: webserver.py:287
-msgid "Error: Unsubscribe failed. You were not subscribed to %(node)!"
+msgid "Error: Unsubscribe failed. You were not subscribed to %(node)s!"
 msgstr ""
 
 #: webserver.py:293
-msgid "Sucessfully unsubscribed from %(node)!"
+msgid "Sucessfully unsubscribed from %(node)s!"
 msgstr ""
 
 #: webserver.py:298
-msgid "Node %(node) was removed, because nobody subscribes to it anymore."
+msgid "Node %(node)s was removed, because nobody subscribes to it anymore."
 msgstr ""
 
 #: templates/404.html:4

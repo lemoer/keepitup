@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2021-03-19 00:27+0100\n"
+"POT-Creation-Date: 2021-03-20 23:21+0100\n"
 "PO-Revision-Date: 2021-02-28 16:40+0100\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: de\n"
@@ -78,9 +78,10 @@ msgid "Error: The entered mail does not contain an @."
 msgstr "Fehler: Die eingegebene Mail-Adresse enthält kein @."
 
 #: webserver.py:106 webserver.py:109
-msgid "Error: Email invalid. The domain %(domain) does not have an MX record."
+#, python-format
+msgid "Error: Email invalid. The domain %(domain)s does not have an MX record."
 msgstr ""
-"Fehler: Ungültige E-Mail-Adresse. Die Domain %(domain) hat keinen MX-"
+"Fehler: Ungültige E-Mail-Adresse. Die Domain %(domain)s hat keinen MX-"
 "Record."
 
 #: webserver.py:115
@@ -128,16 +129,19 @@ msgid "Error: You need to be logged in to subscribe."
 msgstr "Fehler: Du musst eingeloggt sein, um Router-Infos zu abonnieren."
 
 #: webserver.py:218
-msgid "Error: You are already subscribed to %(node)!"
-msgstr "Fehler: Du hast %(node) bereits abonniert!"
+#, python-format
+msgid "Error: You are already subscribed to %(node)s!"
+msgstr "Fehler: Du hast %(node)s bereits abonniert!"
 
 #: webserver.py:229
-msgid "Subscribed to node %(node)."
-msgstr "Knoten %(node) abonniert."
+#, python-format
+msgid "Subscribed to node %(node)s."
+msgstr "Knoten %(node)s abonniert."
 
 #: webserver.py:256
-msgid "Error: Node with nodeid %(nodeid) not found!"
-msgstr "Fehler: Knoten %(nodeid) wurde nicht gefunden!"
+#, python-format
+msgid "Error: Node with nodeid %(nodeid)s not found!"
+msgstr ""
 
 #: webserver.py:267
 msgid "Error: You need to be logged in to unsubscribe."
@@ -148,22 +152,28 @@ msgid "Error: Unsubscribe failed. No nodeid was given."
 msgstr "Fehler: Abbestellung fehlgeschlagen. Es wurde keine Knoten-ID angegeben."
 
 #: webserver.py:281
-msgid "Error: Unsubscribe failed. Node with nodeid %(nodeid) not found!"
-msgstr "Fehler: Abbestellung fehlgeschlagen. Der Knoten mit der ID "
+#, python-format
+msgid "Error: Unsubscribe failed. Node with nodeid %(nodeid)s not found!"
+msgstr ""
+"Fehler: Abbestellung fehlgeschlagen. Der Knoten mit der ID %(nodeid)s "
+"wurde nicht gefunden!"
 
 #: webserver.py:287
-msgid "Error: Unsubscribe failed. You were not subscribed to %(node)!"
+#, python-format
+msgid "Error: Unsubscribe failed. You were not subscribed to %(node)s!"
 msgstr ""
-"Fehler: Abbestellung fehlgeschlagen. Du hattest Knoten %(node) nicht "
+"Fehler: Abbestellung fehlgeschlagen. Du hattest Knoten %(node)s nicht "
 "abonniert."
 
 #: webserver.py:293
-msgid "Sucessfully unsubscribed from %(node)!"
-msgstr "Knoten %(node) erfolgreich abbestellt."
+#, python-format
+msgid "Sucessfully unsubscribed from %(node)s!"
+msgstr "Knoten %(node)s erfolgreich abbestellt."
 
 #: webserver.py:298
-msgid "Node %(node) was removed, because nobody subscribes to it anymore."
-msgstr "Knoten %(node) wurde entfernt, da ihn niemand mehr abonniert hat."
+#, python-format
+msgid "Node %(node)s was removed, because nobody subscribes to it anymore."
+msgstr "Knoten %(node)s wurde entfernt, da ihn niemand mehr abonniert hat."
 
 #: templates/404.html:4
 msgid "404 - Not Found"

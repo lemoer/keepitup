@@ -103,10 +103,10 @@ def register():
         try:
             dns.resolver.query(domain, 'MX')
         except dns.resolver.Timeout:
-            flash(gettext('Error: Email invalid. The domain %(domain) does not have an MX record.', domain), 'danger')
+            flash(gettext('Error: Email invalid. The domain %(domain)s does not have an MX record.', domain=domain), 'danger')
             return res(400)
         except dns.resolver.NXDOMAIN:
-            flash(gettext('Error: Email invalid. The domain %(domain) does not have an MX record.', domain), 'danger')
+            flash(gettext('Error: Email invalid. The domain %(domain)s does not have an MX record.', domain=domain), 'danger')
             return res(400)
 
         user = User.find_by_email(db, email)
@@ -215,7 +215,7 @@ def subscribe():
 
     def try_subscribe(node):
         if user in node.subscribed_users:
-            flash(gettext('Error: You are already subscribed to %(node)!', node), 'danger')
+            flash(gettext('Error: You are already subscribed to %(node)s!', node=node.name), 'danger')
             return redirect_to_last_page()
 
         s = Subscription()
@@ -226,7 +226,7 @@ def subscribe():
         db.add(node) # node might not be in db yet
         db.commit()
 
-        flash(gettext('Subscribed to node %(node).', node.name), 'success')
+        flash(gettext('Subscribed to node %(node)s.', node=node.name), 'success')
         if request.args.get('goto') == 'yes':
             return redirect(url_for('node', nodeid=node.nodeid))
         else:
@@ -253,7 +253,7 @@ def subscribe():
         node = nodes_json_cache.find_by_nodeid(request.args['nodeid'])
 
         if not node:
-            flash(gettext('Error: Node with nodeid %(nodeid) not found!', request.args['nodeid']), 'danger')
+            flash(gettext('Error: Node with nodeid %(nodeid)s not found!', nodeid=request.args['nodeid']), 'danger')
             return res(400)
 
         return try_subscribe(node)
@@ -278,24 +278,24 @@ def unsubscribe():
     node = nodeset.find_by_nodeid(request.args['nodeid'])
 
     if not node:
-        flash(gettext('Error: Unsubscribe failed. Node with nodeid %(nodeid) not found!', request.args['nodeid']), 'danger')
+        flash(gettext('Error: Unsubscribe failed. Node with nodeid %(nodeid)s not found!', nodeid=request.args['nodeid']), 'danger')
         return redirect_to_last_page()
 
     subscription = node.get_subscription_by_user(db, user)
 
     if not subscription:
-        flash(gettext('Error: Unsubscribe failed. You were not subscribed to %(node)!', node.name), 'danger')
+        flash(gettext('Error: Unsubscribe failed. You were not subscribed to %(node)s!', node=node.name), 'danger')
         return redirect_to_last_page()
 
     db.delete(subscription)
     db.commit()
 
-    flash(gettext('Sucessfully unsubscribed from %(node)!', node.name), 'info')
+    flash(gettext('Sucessfully unsubscribed from %(node)s!', node=node.name), 'info')
 
     if len(node.subscriptions) == 0:
         db.delete(node)
         db.commit()
-        flash(gettext('Node %(node) was removed, because nobody subscribes to it anymore.', node.name), 'info')
+        flash(gettext('Node %(node)s was removed, because nobody subscribes to it anymore.', node=node.name), 'info')
 
         return redirect('/')
 
