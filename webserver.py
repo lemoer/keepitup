@@ -105,6 +105,9 @@ def register():
         except dns.resolver.Timeout:
             flash(gettext('Error: Email invalid. The domain %(domain)s does not have an MX record.', domain=domain), 'danger')
             return res(400)
+        except dns.resolver.NoAnswer:
+            flash(gettext('Error: Email invalid. The domain %(domain)s does not have an MX record.', domain=domain), 'danger')
+            return res(400)
         except dns.resolver.NXDOMAIN:
             flash(gettext('Error: Email invalid. The domain %(domain)s does not have an MX record.', domain=domain), 'danger')
             return res(400)
