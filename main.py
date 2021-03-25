@@ -252,10 +252,10 @@ class Alarm(Base):
             user = subscription.user
 
             if self.is_resolved:
-                mail_template = self.get_mail_template("resolved")
+                mail_template = user.get_mail_template("resolved")
                 user.send_mail(mail_template, in_reply_to=self.alarm_mail_msgid, node=node, url=url)
             else:
-                mail_template = self.get_mail_template("alarm")
+                mail_template = user.get_mail_template("alarm")
                 self.alarm_mail_msgid = user.send_mail(mail_template, node=node, url=url)
 
                 session.add(self)
