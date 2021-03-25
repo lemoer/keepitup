@@ -34,6 +34,14 @@ Base = declarative_base()
 if not APP_URL.endswith('/'):
     APP_URL += '/'
 
+
+def get_mail_template(name):
+    subject_template = f"mail:{name}:subject"
+    message_template = f"mail:{name}:message"
+    return {"subject": gettext(subject_template),
+            "message": gettext(message_template)}
+
+
 class User(Base):
     __tablename__ = 'users'
     id = Column(Integer, Sequence('user_id_seq'), primary_key=True)
@@ -61,15 +69,9 @@ class User(Base):
 
         return tokens_match
 
-    def get_mail_template(self, name):
-        subject_template = f"mail:{name}:subject"
-        message_template = f"mail:{name}:message"
-        return {"subject": gettext(subject_template),
-                "message": gettext(message_template)}
-
     def send_confirm_mail(self, url):
         url = url + "?email=" + self.email + "&token=" + self.email_token
-        mail_template = self.get_mail_template("confirm")
+        mail_template = get_mail_template("confirm")
 
         self.send_mail(mail_template, url=url)
 
@@ -252,10 +254,10 @@ class Alarm(Base):
             user = subscription.user
 
             if self.is_resolved:
-                mail_template = self.get_mail_template("resolved")
+                mail_template = get_mail_template("resolved")
                 user.send_mail(mail_template, in_reply_to=self.alarm_mail_msgid, node=node, url=url)
             else:
-                mail_template = self.get_mail_template("alarm")
+                mail_template = get_mail_template("alarm")
                 self.alarm_mail_msgid = user.send_mail(mail_template, node=node, url=url)
 
                 session.add(self)
