@@ -8,6 +8,7 @@ import pytz
 import pprint
 import secrets
 import datetime
+import gettext
 import requests
 import smtplib, ssl
 from email.utils import make_msgid
@@ -15,7 +16,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.header import Header
 from email.charset import Charset, QP
-from flask_babel import gettext
+from flask_babel import get_locale as flask_get_locale
 
 from sqlalchemy import create_engine, func, event
 from sqlalchemy.ext.declarative import declarative_base
@@ -33,6 +34,7 @@ Base = declarative_base()
 
 if not APP_URL.endswith('/'):
     APP_URL += '/'
+
 
 class User(Base):
     __tablename__ = 'users'
@@ -62,10 +64,17 @@ class User(Base):
         return tokens_match
 
     def get_mail_template(self, name):
+        flask_locale = flask_get_locale()
+        if flask_locale:
+            language = flask_locale.language
+        else:
+            language = 'en'
+
+        t = gettext.translation('messages', localedir='translations', languages=[language])
         subject_template = f"mail:{name}:subject"
         message_template = f"mail:{name}:message"
-        return {"subject": gettext(subject_template),
-                "message": gettext(message_template)}
+        return {"subject": t.gettext(subject_template),
+                "message": t.gettext(message_template)}
 
     def send_confirm_mail(self, url):
         url = url + "?email=" + self.email + "&token=" + self.email_token
