@@ -71,10 +71,18 @@ class User(Base):
             language = 'en'
 
         t = gettext.translation('messages', localedir='translations', languages=[language])
-        subject_template = f"mail:{name}:subject"
-        message_template = f"mail:{name}:message"
-        return {"subject": t.gettext(subject_template),
-                "message": t.gettext(message_template)}
+
+        if name == 'confirm':
+            return {"subject": t.gettext("mail:confirm:subject"),
+                    "message": t.gettext("mail:confirm:message")}
+        elif name == 'alarm':
+            return {"subject": t.gettext("mail:alarm:subject"),
+                    "message": t.gettext("mail:alarm:message")}
+        elif name == 'resolved':
+            return {"subject": t.gettext("mail:resolved:subject"),
+                    "message": t.gettext("mail:resolved:message")}
+        else:
+            raise Exception(f'No mail template named {name} found!')
 
     def send_confirm_mail(self, url):
         url = url + "?email=" + self.email + "&token=" + self.email_token
