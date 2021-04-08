@@ -3,6 +3,11 @@
 {% block content %}
 <h1>{{ _('Subscribe') }}</h1>
 
+<div>
+	{{ _('Search') }}:
+	<input type="text" id="nodes-list-filter" name="nodes-filter" value="" oninput="filterChanged(event);"></input>
+</div>
+
 <ul>
 {% for node in nodes_json_cache.nodes|sort(attribute='name') %}
 	{% set show_subscribe = node not in user.subscribed_nodes %}
@@ -12,6 +17,26 @@
 </ul>
 
 <script type="text/javascript">
+
+let nodesFilterInputElem = document.getElementById("nodes-list-filter");
+let nodes = document.querySelectorAll("[data-type='node']");
+// The browser might set a default value for the filter, if the user
+// has visited this site earlier.
+filterChanged();
+
+function filterChanged() {
+	let pattern = nodesFilterInputElem.value;
+	let N = (v) => v.toLowerCase(); // normalize
+
+	for (var node of nodes) {
+		if (N(node.dataset.nodeName).indexOf(N(pattern)) !== -1) {
+			node.style.display = "list-item";
+		} else {
+			node.style.display = "none";
+		}
+
+	}
+}
 
 function loading(elem, replaceElem) {
 	let dots = elem.dots;
