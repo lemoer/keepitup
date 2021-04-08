@@ -7,7 +7,7 @@
 {% for node in nodes_json_cache.nodes|sort(attribute='name') %}
 	{% set show_subscribe = node not in user.subscribed_nodes %}
 	{% set show_goto = node.is_in_db %}
-	<li data-type="node" data-node-id="{{ node.nodeid}}" data-node-name="{{ node.name }}">{{ node.name }} ({% if show_goto %}<a href="{{ url_for('node', nodeid=node.nodeid) }}">{{ _('goto') }}</a>, {% endif %}{% if show_subscribe %}<a onclick="return subscribeAsync(this)" href="{{ url_for('subscribe', nodeid=node.nodeid) }}">{{ _('subscribe') }}</a>, <a href="{{ url_for('subscribe', nodeid=node.nodeid,goto='yes') }}">{{ _('subscribe & goto') }}</a>{% else %}{{ _('no address in nodes.json') }}{% endif %})</li>
+	<li data-type="node" data-node-id="{{ node.nodeid}}" data-node-name="{{ node.name }}">{{ node.name }} ({% if show_goto %}<a href="{{ url_for('node', nodeid=node.nodeid) }}">{{ _('goto') }}</a>{% endif %}{% if show_subscribe %}<a onclick="return subscribeAsync(this)" href="{{ url_for('subscribe', nodeid=node.nodeid) }}">{{ _('subscribe') }}</a>, <a href="{{ url_for('subscribe', nodeid=node.nodeid,goto='yes') }}">{{ _('subscribe & goto') }}</a>{% endif %})</li>
 {% endfor %}
 </ul>
 
