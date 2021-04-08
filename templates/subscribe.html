@@ -7,8 +7,74 @@
 {% for node in nodes_json_cache.nodes|sort(attribute='name') %}
 	{% set show_subscribe = node not in user.subscribed_nodes %}
 	{% set show_goto = node.is_in_db %}
-	<li>{{ node.name }} ({% if show_goto %}<a href="{{ url_for('node', nodeid=node.nodeid) }}">{{ _('goto') }}</a>, {% endif %}{% if show_subscribe %}<a href="{{ url_for('subscribe', nodeid=node.nodeid) }}">{{ _('subscribe') }}</a>, <a href="{{ url_for('subscribe', nodeid=node.nodeid,goto='yes') }}">{{ _('subscribe & goto') }}</a>{% else %}{{ _('no address in nodes.json') }}{% endif %})</li>
+	<li data-type="node" data-node-id="{{ node.nodeid}}" data-node-name="{{ node.name }}">{{ node.name }} ({% if show_goto %}<a href="{{ url_for('node', nodeid=node.nodeid) }}">{{ _('goto') }}</a>, {% endif %}{% if show_subscribe %}<a onclick="return subscribeAsync(this)" href="{{ url_for('subscribe', nodeid=node.nodeid) }}">{{ _('subscribe') }}</a>, <a href="{{ url_for('subscribe', nodeid=node.nodeid,goto='yes') }}">{{ _('subscribe & goto') }}</a>{% else %}{{ _('no address in nodes.json') }}{% endif %})</li>
 {% endfor %}
 </ul>
+
+<script type="text/javascript">
+
+function loading(elem, replaceElem) {
+	let dots = elem.dots;
+
+	if (!dots) {
+		dots = document.createTextNode("");
+		if (replaceElem)
+			elem.replaceChild(dots, replaceElem);
+		else
+			elem.appendChild(dots);
+		elem.dots = dots;
+
+		let interval = setInterval(() => loading(elem), 200);
+		elem.finished = function() {
+			clearInterval(interval);
+			if (elem.contains(dots))
+				elem.parentElement.removeChild(elem);
+		}
+	}
+
+	if (!elem.contains(dots)) {
+		// dots have been removed from parent, so we don't need to do
+		// anything anymore.
+		elem.finished();
+	}
+
+	if (dots.nodeValue == '...')
+		dots.nodeValue = '';
+
+	dots.nodeValue += ".";
+}
+
+function subscribeAsync(a) {
+	let elem = a.parentElement;
+	loading(elem, a);
+
+	fetch('{{ url_for('subscribe') }}?nodeid=' + elem.dataset.nodeId, {
+			method: 'GET',
+			redirect: 'manual' // This is necessary, as 302/redirect to
+			                   // login page would be treated as success
+			                   // otherwise.
+		})
+			.then(function (response) {
+				if (response.type == 'opaqueredirect'){
+					// redirect means success here
+					return true;
+				}
+				if (!response.ok) {
+					throw Error(response.statusText);
+				}
+				return response.text();
+			})
+			.then(function (text) {
+				var t = document.createTextNode('subscribed');
+				elem.replaceChild(t, elem.dots);
+			}).catch(function () {
+				var t = document.createTextNode('failed');
+				elem.replaceChild(t, elem.dots);
+			});
+
+	return false;
+}
+</script>
+
 
 {% endblock %}
