@@ -5,4 +5,6 @@ Flask-Babel
 Flask-SQLAlchemy<3.0.0
 dnspython
 gunicorn
+python-dateutil
 python2-secrets ; python_version < '3.6'  # secrets module is backported in this module
+requests
