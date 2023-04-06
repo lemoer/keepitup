@@ -1,8 +1,8 @@
 numpy
-sqlalchemy
-flask
-flask_babel
-flask_sqlalchemy
+SQLAlchemy<2.0.0
+Flask
+Flask-Babel
+Flask-SQLAlchemy<3.0.0
 dnspython
 gunicorn
 python2-secrets ; python_version < '3.6'  # secrets module is backported in this module
