@@ -7,21 +7,23 @@ from config import *
 from flask_sqlalchemy import SQLAlchemy
 from flask_babel import Babel, gettext
 
-app = Flask(__name__)
-app.secret_key = FLASK_SECRET_KEY
-app.config['SQLALCHEMY_DATABASE_URI'] = SQLITE_URI
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['BABEL_DEFAULT_LOCALE'] = 'en'
-babel = Babel(app)
 
-sqlalchemy = SQLAlchemy(app)
-
-@babel.localeselector
 def get_locale():
     # otherwise try to guess the language from the user accept
     # header the browser transmits.  We support de/fr/en in this
     # example.  The best match wins.
     return request.accept_languages.best_match(['de', 'fr', 'en'])
+
+
+app = Flask(__name__)
+app.secret_key = FLASK_SECRET_KEY
+app.config['SQLALCHEMY_DATABASE_URI'] = SQLITE_URI
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['BABEL_DEFAULT_LOCALE'] = 'en'
+babel = Babel(app, locale_selector=get_locale)
+
+sqlalchemy = SQLAlchemy(app)
+
 
 def get_db():
     global sqlalchemy
