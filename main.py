@@ -234,11 +234,11 @@ class Alarm(Base):
     alarm_mail_msgid = Column(String(995), default=None)
     resolved_at = Column(DateTime, default=None)
     is_resolved = column_property(case(
-        [(resolved_at == None, False)], else_=True))
-    state = column_property(case(value=is_resolved, whens={
-        True: 'ok',
-        False: 'alarm'
-    }))
+        (resolved_at == None, False), else_=True))
+    state = column_property(case(
+        (is_resolved, 'ok'),
+        else_='alarm'
+    ))
 
     @property
     def duration_str(self):
