@@ -125,6 +125,8 @@ class User(Base):
                 if SMTP_USE_STARTTLS:
                     context = ssl.create_default_context()
                     server.starttls(context=context)
+                if SMTP_USER:
+                    server.login(SMTP_USER, SMTP_PASS)
 
                 server.sendmail(SMTP_FROM, self.email, msg.as_string())
 
