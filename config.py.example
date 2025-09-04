@@ -8,6 +8,8 @@ SMTP_FROM = 'test@foobar.com'
 # If users reply to service emails, they will send mails to the SMTP_REPLY_TO_EMAIL
 SMTP_REPLY_TO_EMAIL = 'some_real_email@foobar.com'
 SMTP_USE_STARTTLS = False
+SMTP_USER = 'some_loginname'
+SMTP_PASS = 'secret'
 
 NODES_JSON_URL = 'https://example.com/nodes.json'
 
