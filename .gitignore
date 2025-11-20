@@ -4,3 +4,4 @@ __pycache__
 static/composer.lock
 static/vendor
 translations/*/LC_MESSAGES/*.mo
+.cache
