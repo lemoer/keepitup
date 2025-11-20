@@ -1,8 +1,8 @@
 numpy
-SQLAlchemy<2.0.0
+SQLAlchemy
 Flask
 Flask-Babel
-Flask-SQLAlchemy<3.0.0
+Flask-SQLAlchemy
 dnspython
 gunicorn
 python-dateutil
