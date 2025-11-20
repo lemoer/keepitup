@@ -5,4 +5,4 @@ static/composer.lock
 static/vendor
 translations/*/LC_MESSAGES/*.mo
 .cache
-foo.db*
+data.db*

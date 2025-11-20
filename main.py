@@ -26,7 +26,7 @@ from sqlalchemy.sql import case
 
 from config import *
 
-SQLITE_URI = 'sqlite:///foo.db'
+SQLITE_URI = 'sqlite:///data.db'
 NODE_OFFLINE_TIMEOUT = datetime.timedelta(hours=1)
 DB_VERSION = 3
 

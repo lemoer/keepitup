@@ -19,7 +19,7 @@ app = Flask(__name__)
 app.secret_key = FLASK_SECRET_KEY
 # This is necessary, since sqlalchemy-flask seems to
 # expect things in a subfolder called "instance" normally now.
-SQLITE_URI = 'sqlite:///'+ app.root_path + '/foo.db'
+SQLITE_URI = 'sqlite:///'+ app.root_path + '/data.db'
 app.config['SQLALCHEMY_DATABASE_URI'] = SQLITE_URI
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['BABEL_DEFAULT_LOCALE'] = 'en'
