@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+import base64
+
 # you can use "python -m smtpd -c DebuggingServer -n localhost:1025" for
 # testing purposes here
 SMTP_HOST = 'localhost'
@@ -13,8 +15,9 @@ SMTP_PASS = 'secret'
 
 NODES_JSON_URL = 'https://example.com/nodes.json'
 
-# generate via 'python -c "import secrets; print(secrets.token_bytes(16))"'
-FLASK_SECRET_KEY = b'Ia\x19\x00).F\x07\x96V\xca\xea\xd0\xd9i\x16'; raise "REPLACE THIS KEY!"
+# generate via 'python3 -c "import base64,secrets; print(base64.b64encode(secrets.token_bytes(16)).decode())"'
+FLASK_SECRET_KEY = base64.b64decode('EnWBoh8WjLErOfNHb+86vA=='); raise "REPLACE THIS KEY!"
+
 # if you are behind a proxy, set the globally reachable url here
 APP_URL = "http://[2a02:790:ff:914:eab1:fcff:fef6:4d16]:8080/"
 
